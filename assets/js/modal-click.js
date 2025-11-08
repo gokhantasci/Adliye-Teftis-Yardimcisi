@@ -54,19 +54,14 @@
     var c = e.target.closest ? e.target.closest("[data-close]") : null;
     if (c) closeModalById(c.getAttribute("data-close"));
   });
-  function letterToIndex(col){
-    col = String(col||"").trim().toUpperCase();
-    var n=0;
-    for (var i=0;i<col.length;i++){ n = n*26 + (col.charCodeAt(i)-64); }
-    return n-1;
-  }
+  // letterToIndex is now in utils.js - use window.letterToIndex
   function openModal(rowsOrIdxs, title){
     ensureModal();
     var modal = $("#judgeModal");
     var tbody = $("#judgeModalTable tbody");
     tbody.innerHTML = "";
     $("#judgeModalTitle").textContent = title || "Detaylı Liste";
-    var B = letterToIndex("B"), C = letterToIndex("C"), E = letterToIndex("E");
+    var B = window.letterToIndex("B"), C = window.letterToIndex("C"), E = window.letterToIndex("E");
     var src = (window.G && Array.isArray(G.rows)) ? G.rows : [];
     var count = 0;
     for (var i=0; i<(rowsOrIdxs||[]).length; i++){

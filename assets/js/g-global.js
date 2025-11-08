@@ -1,14 +1,9 @@
 (function(){
   "use strict";
-  function letterToIndex(col){
-    col = String(col||"").trim().toUpperCase();
-    var n = 0;
-    for (var i=0;i<col.length;i++){ n = n*26 + (col.charCodeAt(i)-64); }
-    return n-1;
-  }
+  // letterToIndex is now in utils.js - use window.letterToIndex
   function pick(row, keys){
     if (!row) return "";
-    var map = { B: letterToIndex("B"), C: letterToIndex("C"), E: letterToIndex("E") };
+    var map = { B: window.letterToIndex("B"), C: window.letterToIndex("C"), E: window.letterToIndex("E") };
     for (var i=0;i<keys.length;i++){
       var k = keys[i];
       if (Array.isArray(row) && (k in map)){
@@ -63,5 +58,6 @@
     });
   }
   window.buildGlobalG = buildGlobalG;
-  window.letterToIndex = window.letterToIndex || letterToIndex;
+  // letterToIndex is already in utils.js - keeping this line for backward compatibility only
+  window.letterToIndex = window.letterToIndex || window.TeftisUtils.letterToIndex;
 })();

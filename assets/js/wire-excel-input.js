@@ -33,22 +33,13 @@
   }
 
   if (!excelInput) return;
-  function letterToIndex(s){
-    s = (s||"").trim().toUpperCase();
-    let n=0;
-    for (let i=0;i<s.length;i++){
-      const c = s.charCodeAt(i) - 64;
-      if (c<1 || c>26) return NaN;
-      n = n*26 + c;
-    }
-    return n-1;
-  }
+  // letterToIndex is now in utils.js - use window.letterToIndex
   function toNumber(v){
     const n = Number(String(v||"").replace(/\./g,"").replace(",", "."));
     return isFinite(n) ? n : 0;
   }
   function idxDefault(){
-    return { m: letterToIndex("M"), o: letterToIndex("O"), p: letterToIndex("P"), q: letterToIndex("Q"), t: letterToIndex("T"), z: letterToIndex("Z") };
+    return { m: window.letterToIndex("M"), o: window.letterToIndex("O"), p: window.letterToIndex("P"), q: window.letterToIndex("Q"), t: window.letterToIndex("T"), z: window.letterToIndex("Z") };
   }
   function kararTuruRow(r, idx){
     if (toNumber(r[idx.o])>0) return "Mahkumiyet";
@@ -126,7 +117,7 @@ const file = e.target.files && e.target.files[0];
       const matrix = await readWorkbook(file);
       const rows = matrix.slice(1);
       const idx = idxDefault();
-      const judgeCols = [letterToIndex("I"), letterToIndex("J"), letterToIndex("K")];
+      const judgeCols = [window.letterToIndex("I"), window.letterToIndex("J"), window.letterToIndex("K")];
       window.G = window.G || {};
       G.rowsBase = rows;
       G.idx = idx;

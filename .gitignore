@@ -1,0 +1,56 @@
+# ========================================
+# ADLIYE TEFTIS YARDIMCISI - .gitignore
+# ========================================
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+*.cache
+
+# Data files that may contain sensitive information
+data/notes.json
+data/mail_guard.json
+
+# API logs
+data/api.log
+
+# PHP temporary files
+*.php~
+.htaccess~
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build artifacts
+dist/
+build/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Backup files
+*.backup
+*-backup.*
