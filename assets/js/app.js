@@ -1,10 +1,4 @@
-function formatRetryMessage(sec) {
-  sec = Number(sec) || 0;
-  if (sec <= 0) return 'Bir süre sonra tekrar deneyin.';
-  if (sec < 60) return sec + ' sn sonra tekrar deneyin.';
-  const mins = Math.ceil(sec / 60);
-  return sec + ' saniye sonra tekrar deneyin.';
-}
+// formatRetryMessage is now in utils.js - use window.formatRetryMessage
 
 
 (function(){
@@ -48,17 +42,7 @@ function formatRetryMessage(sec) {
   const notesKey = "minimal-notes";
   const readNotes = () => JSON.parse(localStorage.getItem(notesKey) || "[]");
   const writeNotes = (arr) => localStorage.setItem(notesKey, JSON.stringify(arr));
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, function(m){
-      return {
-        '&':'&amp;',
-        '<':'&lt;',
-        '>':'&gt;',
-        '"':'&quot;',
-        "'":'&#039;'
-      }[m];
-    });
-  }
+  // escapeHtml is now in utils.js - use window.escapeHtml
   function renderNotes(){
     if (!notesEl) return;
     const data = readNotes();
@@ -71,7 +55,7 @@ function formatRetryMessage(sec) {
       const item = document.createElement("div");
       item.className = "note";
       item.innerHTML =
-        '<div class="text">' + escapeHtml(text) + '</div>' +
+        '<div class="text">' + window.escapeHtml(text) + '</div>' +
         '<div class="actions">' +
         '<button class="btn ghost" data-edit="' + idx + '">Duzenle</button>' +
         '<button class="btn" data-del="' + idx + '">Sil</button>' +

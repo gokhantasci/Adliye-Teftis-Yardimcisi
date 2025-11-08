@@ -37,6 +37,10 @@
   <!-- Koyu/Açık tema desteği için color-scheme meta etiketi -->
   <meta name="color-scheme" content="light dark" />
   
+  <!-- RSS/Atom Feed Auto-discovery -->
+  <link rel="alternate" type="application/rss+xml" title="Teftiş Haberleri (RSS)" href="/api/feed.php" />
+  <link rel="alternate" type="application/atom+xml" title="Teftiş Haberleri (Atom)" href="/api/feed.php?format=atom" />
+  
   <!-- Favicon: SVG formatında responsive ikon -->
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
   
@@ -55,12 +59,14 @@
   
   <!-- 
     JavaScript dosyaları
+    - utils.js: Ortak yardımcı fonksiyonlar (önce yüklenmeli)
     - app.js: Ana uygulama mantığı (tema, notlar, modaller)
     - xlsx.min.js: Excel dosya işleme kütüphanesi
     - open-modal-bridge.js: Modal açma yardımcı fonksiyonları
     - jQuery: Bazı eski modüller için gerekli
   -->
-  <script defer src="/assets/js/app.js?v=8"></script>
+  <script src="/assets/js/utils.js?v=1"></script>
+  <script defer src="/assets/js/app.js?v=9"></script>
   <script src="/assets/js/vendor/xlsx.min.js"></script>
   <script defer src="/assets/js/open-modal-bridge.js?v=1"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
