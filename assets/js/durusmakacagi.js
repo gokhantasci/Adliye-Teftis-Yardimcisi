@@ -7,18 +7,18 @@
 
   function toast(type,title,body){
     if (typeof window.toast === 'function') window.toast({type,title,body});
-    else console[type==='danger'?'error':type==='warning'?'warn':'log'](`${title}: ${body}`);
+    else console[type === 'danger' ? 'error' : type === 'warning' ? 'warn' : 'log'](`${title}: ${body}`);
   }
 
   async function downloadTemplate(){
     if (!btn) return;
     btn.disabled = true; btn.classList.add('busy');
     statusEl && (statusEl.textContent = 'İndiriliyor…');
-  // Direct access to /data is forbidden by .htaccess; use secure API endpoint
-  const url = '/api/dursusma_template.php';
+    // Direct access to /data is forbidden by .htaccess; use secure API endpoint
+    const url = '/api/dursusma_template.php';
     try {
       const res = await fetch(url, { method:'GET' });
-      if (!res.ok){ throw new Error('Sunucu yanıtı başarısız ('+res.status+')'); }
+      if (!res.ok){ throw new Error('Sunucu yanıtı başarısız (' + res.status + ')'); }
       const blob = await res.blob();
       const dlUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -27,9 +27,9 @@
       URL.revokeObjectURL(dlUrl);
       toast('success','İndirildi','Şablon dosyası indiriliyor.');
       statusEl && (statusEl.textContent = 'İndirme başlatıldı.');
-    } catch(e){
+    } catch (e){
       toast('danger','Hata', String(e));
-      statusEl && (statusEl.textContent = 'İndirme başarısız: '+ e.message);
+      statusEl && (statusEl.textContent = 'İndirme başarısız: ' + e.message);
     } finally {
       btn.disabled = false; btn.classList.remove('busy');
     }

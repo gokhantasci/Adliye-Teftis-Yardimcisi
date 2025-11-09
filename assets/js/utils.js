@@ -19,7 +19,7 @@
    * @returns {number} Zero-based column index
    */
   function letterToIndex(col) {
-    col = String(col || "").trim().toUpperCase();
+    col = String(col || '').trim().toUpperCase();
     let n = 0;
     for (let i = 0; i < col.length; i++) {
       n = n * 26 + (col.charCodeAt(i) - 64);
@@ -33,7 +33,7 @@
    * @returns {string} Escaped string
    */
   function escapeHtml(s) {
-    return String(s ?? "").replace(/[&<>"']/g, function(m) {
+    return String(s ?? '').replace(/[&<>"']/g, function(m) {
       return {
         '&': '&amp;',
         '<': '&lt;',
@@ -51,24 +51,24 @@
    * @returns {string} Normalized string
    */
   function normalizeTurkish(s) {
-    return String(s ?? "")
-      .replace(/\u00A0/g, " ")
-      .replace(/\r?\n+/g, " ")
+    return String(s ?? '')
+      .replace(/\u00A0/g, ' ')
+      .replace(/\r?\n+/g, ' ')
       .trim()
       .toLowerCase()
-      .replace(/\s+/g, " ")
-      .replaceAll("ı", "i")
-      .replaceAll("İ", "i")
-      .replaceAll("ş", "s")
-      .replaceAll("Ş", "s")
-      .replaceAll("ğ", "g")
-      .replaceAll("Ğ", "g")
-      .replaceAll("ö", "o")
-      .replaceAll("Ö", "o")
-      .replaceAll("ü", "u")
-      .replaceAll("Ü", "u")
-      .replaceAll("ç", "c")
-      .replaceAll("Ç", "c");
+      .replace(/\s+/g, ' ')
+      .replaceAll('ı', 'i')
+      .replaceAll('İ', 'i')
+      .replaceAll('ş', 's')
+      .replaceAll('Ş', 's')
+      .replaceAll('ğ', 'g')
+      .replaceAll('Ğ', 'g')
+      .replaceAll('ö', 'o')
+      .replaceAll('Ö', 'o')
+      .replaceAll('ü', 'u')
+      .replaceAll('Ü', 'u')
+      .replaceAll('ç', 'c')
+      .replaceAll('Ç', 'c');
   }
 
   /**
@@ -80,12 +80,12 @@
    * @param {number} opts.delay - Auto-hide delay in milliseconds
    */
   function showToast(opts) {
-    if (typeof window.toast === "function") {
+    if (typeof window.toast === 'function') {
       window.toast(opts);
     } else {
       // Fallback to console
-      const level = opts.type === 'danger' ? 'error' : 
-                    opts.type === 'warning' ? 'warn' : 'log';
+      const level = opts.type === 'danger' ? 'error' :
+        opts.type === 'warning' ? 'warn' : 'log';
       console[level](`${opts.title}: ${opts.body}`);
     }
   }
@@ -99,18 +99,18 @@
    */
   function toastWithIcon(type, title, msg, delay = 5000) {
     const icons = {
-      success: "check_circle",
-      warning: "warning",
-      danger: "error",
-      info: "info"
+      success: 'check_circle',
+      warning: 'warning',
+      danger: 'error',
+      info: 'info'
     };
-    const icon = icons[type] || "info";
-    
+    const icon = icons[type] || 'info';
+
     const bodyHtml = `<div style="display:flex;align-items:flex-start;gap:.5rem;">
       <span class="material-symbols-rounded" style="font-size:22px;">${icon}</span>
       <div>${msg}</div>
     </div>`;
-    
+
     showToast({ type, title, body: bodyHtml, delay });
   }
 
@@ -120,7 +120,7 @@
    * @returns {string} Formatted number
    */
   function formatNumber(n) {
-    return new Intl.NumberFormat("tr-TR").format(n || 0);
+    return new Intl.NumberFormat('tr-TR').format(n || 0);
   }
 
   /**
@@ -173,7 +173,7 @@
    * @returns {boolean} True if valid
    */
   function isValidAdaletEmail(email) {
-    return /^[A-Z0-9._%+-]+@adalet\.gov\.tr$/i.test(String(email || "").trim());
+    return /^[A-Z0-9._%+-]+@adalet\.gov\.tr$/i.test(String(email || '').trim());
   }
 
   /**
@@ -182,7 +182,7 @@
    * @returns {string} Extracted email or empty string
    */
   function extractEmail(text) {
-    const match = String(text || "").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    const match = String(text || '').match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
     return match ? match[0].trim() : '';
   }
 
@@ -257,8 +257,8 @@
     formatRetryMessage,
     createElement,
     $,
-      $$,
-      showSpinner,
+    $$,
+    showSpinner,
     hideSpinner,
     logEvent
   };
@@ -268,34 +268,34 @@
   window.escapeHtml = escapeHtml;
   window.normalizeTurkish = normalizeTurkish;
   window.formatRetryMessage = formatRetryMessage;
-    window.showSpinner = showSpinner;
-    window.hideSpinner = hideSpinner;
+  window.showSpinner = showSpinner;
+  window.hideSpinner = hideSpinner;
   window.logEvent = logEvent;
 
-    /**
+  /**
      * Show global loading spinner
      * @param {string} text - Optional text to display (default: "Veriler işleniyor...")
      */
-    function showSpinner(text) {
-      const spinner = document.getElementById('globalSpinner');
-      if (!spinner) return;
-    
-      const textEl = spinner.querySelector('.spinner-text');
-      if (textEl && text) {
-        textEl.textContent = text;
-      }
-    
-      spinner.style.display = 'flex';
+  function showSpinner(text) {
+    const spinner = document.getElementById('globalSpinner');
+    if (!spinner) return;
+
+    const textEl = spinner.querySelector('.spinner-text');
+    if (textEl && text) {
+      textEl.textContent = text;
     }
 
-    /**
+    spinner.style.display = 'flex';
+  }
+
+  /**
      * Hide global loading spinner
      */
-    function hideSpinner() {
-      const spinner = document.getElementById('globalSpinner');
-      if (!spinner) return;
-      spinner.style.display = 'none';
-    }
+  function hideSpinner() {
+    const spinner = document.getElementById('globalSpinner');
+    if (!spinner) return;
+    spinner.style.display = 'none';
+  }
 
   // =============================
   // Unified Log System
@@ -304,47 +304,47 @@
   const LOG_EXCLUDE_TYPES = new Set(['ui', 'warn', 'log', 'error']); // exclude UI logs and console warn/log/error
   const _logBuffer = loadLogsFromStorage();
   const LOG_PAGER = { page: 1, pageSize: 10 };
-  
+
   function loadLogsFromStorage(){
-    try{
+    try {
       const stored = localStorage.getItem(LOG_STORAGE_KEY);
-      if(!stored) return [];
+      if (!stored) return [];
       const parsed = JSON.parse(stored);
       return parsed.map(e => ({...e, time: new Date(e.time)}));
-    }catch(_){ return []; }
+    } catch (_){ return []; }
   }
-  
+
   function saveLogsToStorage(){
-    try{
+    try {
       const toSave = _logBuffer.slice(-500).map(e => ({
         time: e.time.toISOString(),
         type: e.type,
         message: e.message
       }));
       localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(toSave));
-    }catch(_){ /* silent */ }
+    } catch (_){ /* silent */ }
   }
-  
+
   function logEvent(type, message){
-    try{
+    try {
       if (LOG_EXCLUDE_TYPES.has(type)) return; // skip noisy UI logs
       const time = new Date();
       _logBuffer.push({ time, type, message });
       if (_logBuffer.length > 500) _logBuffer.shift();
       renderLogsPage();
       saveLogsToStorage();
-    }catch(_e){ /* silent */ }
+    } catch (_e){ /* silent */ }
   }
 
   function renderLogPanelRow(entry, targetBody){
     const body = targetBody || document.getElementById('logPanelBody');
-    if(!body) return;
+    if (!body) return;
     const row = document.createElement('div');
     row.className = 'log-row';
     const hh = String(entry.time.getHours()).padStart(2,'0');
     const mm = String(entry.time.getMinutes()).padStart(2,'0');
     const ss = String(entry.time.getSeconds()).padStart(2,'0');
-    const t = String(entry.type||'info').toLowerCase();
+    const t = String(entry.type || 'info').toLowerCase();
     const typeClass = `log-type log-type-${t}`;
     row.innerHTML = `<div class="log-time">${hh}:${mm}:${ss}</div>
       <div><span class="${typeClass}">${escapeHtml(entry.type)}</span> <span class="log-msg">${escapeHtml(entry.message)}</span></div>`;
@@ -356,25 +356,25 @@
     const stats = document.getElementById('logStats');
     // Show filtered count, not total buffer count
     const filtered = _logBuffer.filter(e => !LOG_EXCLUDE_TYPES.has(e.type));
-    if(stats) stats.textContent = filtered.length + ' kayıt';
+    if (stats) stats.textContent = filtered.length + ' kayıt';
   }
-  
+
   function renderLogsPage(){
     const body = document.getElementById('logPanelBody');
     const info = document.getElementById('logPagerInfo');
     const prev = document.getElementById('logPrevBtn');
     const next = document.getElementById('logNextBtn');
-    if(!body) return;
+    if (!body) return;
 
-  // Newest first
-  const data = _logBuffer.filter(e => !LOG_EXCLUDE_TYPES.has(e.type)).sort((a,b)=> b.time - a.time);
+    // Newest first
+    const data = _logBuffer.filter(e => !LOG_EXCLUDE_TYPES.has(e.type)).sort((a,b) => b.time - a.time);
     const total = data.length;
     const pages = Math.max(1, Math.ceil(total / LOG_PAGER.pageSize));
     if (LOG_PAGER.page < 1) LOG_PAGER.page = 1;
     if (LOG_PAGER.page > pages) LOG_PAGER.page = pages;
 
-  const start = (LOG_PAGER.page - 1) * LOG_PAGER.pageSize;
-  const slice = data.slice(start, start + LOG_PAGER.pageSize);
+    const start = (LOG_PAGER.page - 1) * LOG_PAGER.pageSize;
+    const slice = data.slice(start, start + LOG_PAGER.pageSize);
     body.innerHTML = '';
     slice.forEach(entry => renderLogPanelRow(entry, body));
     updateLogStats();
@@ -387,7 +387,7 @@
   function renderAllLogs(){
     renderLogsPage();
   }
-  
+
   // Sayfa yüklendiğinde tüm logları render et
   function bindLogPagerControls(){
     const prev = document.getElementById('logPrevBtn');
@@ -396,56 +396,56 @@
     if (next) next.addEventListener('click', function(){ LOG_PAGER.page++; renderLogsPage(); });
   }
 
-  if(document.readyState === 'loading'){
+  if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', function(){ bindLogPagerControls(); renderAllLogs(); });
   } else {
     bindLogPagerControls();
     setTimeout(renderAllLogs, 100);
   }
   // Intercept console methods
-    ['log','warn','error','info'].forEach(kind => {
-      const original = console[kind];
-      console[kind] = function(...args){
-        try{ logEvent(kind, args.map(a=> typeof a==='string'? a: JSON.stringify(a)).join(' ')); }catch(_){}
-        original.apply(console, args);
+  ['log','warn','error','info'].forEach(kind => {
+    const original = console[kind];
+    console[kind] = function(...args){
+      try { logEvent(kind, args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ')); } catch (_){}
+      original.apply(console, args);
+    };
+  });
+  // Ensure toast logging at display-time and auto-rewrap if reassigned later
+  (function ensureToastLogging(){
+    function normalize(args){
+      if (!args.length) return {};
+      if (typeof args[0] === 'object' && !Array.isArray(args[0])) return {...args[0]};
+      const type = args[0]; const title = args[1]; const body = args[2]; const extra = (typeof args[3] === 'object' && args[3]) || {};
+      return { ...extra, type, title, body };
+    }
+    function wrap(fn){
+      if (typeof fn !== 'function') return fn;
+      if (fn.__wrappedToastLogger) return fn;
+      const wrapped = function(){
+        const opts = normalize(arguments);
+        try {
+          const toastType = String(opts.type || 'info').toLowerCase();
+          const msg = (opts.title || '') + (opts.body ? ': ' + opts.body : '');
+          if (window.logEvent) window.logEvent(toastType, msg);
+        } catch (_){ }
+        return fn.apply(this, [opts]);
       };
-    });
-    // Ensure toast logging at display-time and auto-rewrap if reassigned later
-    (function ensureToastLogging(){
-      function normalize(args){
-        if (!args.length) return {};
-        if (typeof args[0] === 'object' && !Array.isArray(args[0])) return {...args[0]};
-        const type = args[0]; const title = args[1]; const body = args[2]; const extra = (typeof args[3]==='object'&&args[3])||{};
-        return { ...extra, type, title, body };
+      wrapped.__wrappedToastLogger = true;
+      return wrapped;
+    }
+    function hook(){
+      if (typeof window.toast === 'function' && !window.toast.__wrappedToastLogger){
+        window.toast = wrap(window.toast);
+        window.__TOAST_LOG_WRAP_ACTIVE = true;
       }
-      function wrap(fn){
-        if (typeof fn !== 'function') return fn;
-        if (fn.__wrappedToastLogger) return fn;
-        const wrapped = function(){
-          const opts = normalize(arguments);
-          try{
-            const toastType = String(opts.type||'info').toLowerCase();
-            const msg = (opts.title||'') + (opts.body? ': '+opts.body:'');
-            if (window.logEvent) window.logEvent(toastType, msg);
-          }catch(_){ }
-          return fn.apply(this, [opts]);
-        };
-        wrapped.__wrappedToastLogger = true;
-        return wrapped;
-      }
-      function hook(){
-        if (typeof window.toast === 'function' && !window.toast.__wrappedToastLogger){
-          window.toast = wrap(window.toast);
-          window.__TOAST_LOG_WRAP_ACTIVE = true;
-        }
-      }
-      // initial and keep alive
-      hook();
-      setTimeout(hook, 0);
-      setInterval(hook, 1000);
-    })();
+    }
+    // initial and keep alive
+    hook();
+    setTimeout(hook, 0);
+    setInterval(hook, 1000);
+  })();
 
-    // Expose buffer for export if needed
-    window.__LOG_BUFFER__ = _logBuffer;
+  // Expose buffer for export if needed
+  window.__LOG_BUFFER__ = _logBuffer;
 
 })(window);

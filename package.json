@@ -1,0 +1,24 @@
+{
+  "name": "adliye-teftis-yardimcisi",
+  "version": "1.1.0",
+  "type": "module",
+  "description": "Adliye teftiş işlemlerini kolaylaştırmak ve hızlandırmak için geliştirilmiş kapsamlı bir web uygulaması",
+  "main": "index.php",
+  "scripts": {
+    "lint": "eslint 'assets/js/**/*.js' --ignore-pattern '*.min.js' --ignore-pattern 'vendor/**'",
+    "lint:fix": "eslint 'assets/js/**/*.js' --ignore-pattern '*.min.js' --ignore-pattern 'vendor/**' --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "adliye",
+    "teftiş",
+    "judiciary",
+    "inspection",
+    "turkish"
+  ],
+  "author": "Gökhan TAŞÇI",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^9.39.1"
+  }
+}

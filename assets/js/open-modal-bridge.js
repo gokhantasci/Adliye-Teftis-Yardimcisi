@@ -1,26 +1,26 @@
 // computeKararNo: B sütunundaki numarayı, E/Y sütunundan çıkan YIL ile "YIL/B" formatında birleştirir.
 function computeKararNo(r){
-  try{
+  try {
     if (!r) return '';
-    var bVal = (typeof r[1] !== 'undefined' && r[1] != null) ? String(r[1]).trim() : ''; // B sütunu (0=A,1=B)
+    const bVal = (typeof r[1] !== 'undefined' && r[1] != null) ? String(r[1]).trim() : ''; // B sütunu (0=A,1=B)
     // E sütunundan yıl dene; yoksa Y sütunu, en sonda mevcut yıl
-    var eIdx = (typeof letterToIndex==='function') ? letterToIndex('E') : 4;
-    var yIdx = (typeof letterToIndex==='function') ? letterToIndex('Y') : 24;
-    var eVal = (Array.isArray(r) ? (r[eIdx]||'') : (r && r.E) || '').toString().trim();
-    var yVal = (Array.isArray(r) ? (r[yIdx]||'') : (r && r.Y) || '').toString().trim();
-    var year = (eVal.match(/\b(\d{4})\b/)||[])[1] || (yVal.match(/\b(\d{4})\b/)||[])[1] || String(new Date().getFullYear());
+    const eIdx = (typeof letterToIndex === 'function') ? letterToIndex('E') : 4;
+    const yIdx = (typeof letterToIndex === 'function') ? letterToIndex('Y') : 24;
+    const eVal = (Array.isArray(r) ? (r[eIdx] || '') : (r && r.E) || '').toString().trim();
+    const yVal = (Array.isArray(r) ? (r[yIdx] || '') : (r && r.Y) || '').toString().trim();
+    const year = (eVal.match(/\b(\d{4})\b/) || [])[1] || (yVal.match(/\b(\d{4})\b/) || [])[1] || String(new Date().getFullYear());
     if (!bVal) return year;
     return year + '/' + bVal;
-  }catch(e){ return ''; }
+  } catch (e){ return ''; }
 }
 
 (function(){
-  if (typeof window.openModal === "function") return;
+  if (typeof window.openModal === 'function') return;
 
   function ensureModal(){
-    let modal = document.getElementById("caseModal");
+    let modal = document.getElementById('caseModal');
     if (!modal){
-      const tpl = document.createElement("template");
+      const tpl = document.createElement('template');
       tpl.innerHTML = `
 <div id="caseModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="cm-backdrop" data-close></div>
@@ -40,7 +40,7 @@ function computeKararNo(r){
   </div>
 </div>`;
       document.body.appendChild(tpl.content);
-      modal = document.getElementById("caseModal");
+      modal = document.getElementById('caseModal');
 
       function close(){ modal.classList.remove('is-open','active'); modal.setAttribute('aria-hidden','true'); }
       modal.__close = close;
@@ -51,7 +51,7 @@ function computeKararNo(r){
         const insideCard = !!e.target.closest('.modal-card');
         if (isBackdrop || !insideCard) close();
       });
-      document.addEventListener('keydown', function(e){ if (e.key==='Escape') close(); });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
 
       // --- BUTONLAR: Kapat / Excel / Yazdır (tam tablo) ---
       const btnClose  = modal.querySelector('#btnNoJudgeClose');
@@ -92,21 +92,21 @@ function computeKararNo(r){
       }
 
       if (btnClose){
-        btnClose.addEventListener('click', (ev)=>{
+        btnClose.addEventListener('click', (ev) => {
           ev.stopPropagation();
           if (typeof modal.__close === 'function') modal.__close();
           else { modal.classList.remove('is-open','active'); modal.setAttribute('aria-hidden','true'); }
         });
       }
       if (btnExport){
-        btnExport.addEventListener('click', (ev)=>{
+        btnExport.addEventListener('click', (ev) => {
           ev.stopPropagation();
           const table = modal.querySelector('table');
           if (table) exportTableToExcelFull(table, 'detaylar.xls');
         });
       }
       if (btnPrint){
-        btnPrint.addEventListener('click', (ev)=>{
+        btnPrint.addEventListener('click', (ev) => {
           ev.stopPropagation();
           const table = modal.querySelector('table');
           if (table) printFullTable(table);
@@ -116,10 +116,10 @@ function computeKararNo(r){
       // Arama inputu
       const search = modal.querySelector('#noJudgeSearch');
       if (search){
-        search.addEventListener('input', (ev)=>{
+        search.addEventListener('input', (ev) => {
           ev.stopPropagation();
           const q = search.value.toLowerCase();
-          modal.querySelectorAll('tbody tr').forEach(tr=>{
+          modal.querySelectorAll('tbody tr').forEach(tr => {
             const t = tr.textContent.toLowerCase();
             tr.style.display = t.includes(q) ? '' : 'none';
           });
@@ -132,8 +132,8 @@ function computeKararNo(r){
   function buildTableFromRows(rows){
     function idxFromLetter(letter){
       if (typeof letterToIndex === 'function') return letterToIndex(letter);
-      const L = (letter||'').toUpperCase().charCodeAt(0) - 65;
-      return (L>=0 && L<26) ? L : NaN;
+      const L = (letter || '').toUpperCase().charCodeAt(0) - 65;
+      return (L >= 0 && L < 26) ? L : NaN;
     }
     const iB = idxFromLetter('B');
     const iC = idxFromLetter('C');
@@ -141,16 +141,16 @@ function computeKararNo(r){
 
     function getByAliases(obj, aliases){
       for (const k of aliases){
-        if (k in obj && obj[k]!=null && String(obj[k]).trim()!=='') return String(obj[k]);
+        if (k in obj && obj[k] != null && String(obj[k]).trim() !== '') return String(obj[k]);
         const key = Object.keys(obj).find(x => x.toLowerCase() === String(k).toLowerCase());
-        if (key && obj[key]!=null && String(obj[key]).trim()!=='') return String(obj[key]);
+        if (key && obj[key] != null && String(obj[key]).trim() !== '') return String(obj[key]);
       }
       return '';
     }
     function val(row, letter, aliases){
       if (Array.isArray(row)){
-        const i = letter==='B' ? iB : letter==='C' ? iC : iE;
-        if (!isNaN(i) && row[i]!=null) return String(row[i]);
+        const i = letter === 'B' ? iB : letter === 'C' ? iC : iE;
+        if (!isNaN(i) && row[i] != null) return String(row[i]);
         return '';
       } else if (row && typeof row === 'object'){
         return getByAliases(row, aliases);
@@ -164,17 +164,17 @@ function computeKararNo(r){
     tbl.innerHTML = '<thead><tr><th>#</th><th>Esas No (C)</th><th>Karar No</th></tr></thead><tbody></tbody>';
     const tb = tbl.querySelector('tbody');
 
-    (rows||[]).forEach((r, i)=>{
+    (rows || []).forEach((r, i) => {
       const Cval = val(r,'C', ['C','c','esas','Esas','Esas No','esasNo','esas_no','ESAS_NO']);
       const kararNo = computeKararNo(r);
       if (!Cval && !kararNo) return;
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="num">${i+1}</td><td>${Cval||''}</td><td>${kararNo||''}</td>`;
+      tr.innerHTML = `<td class="num">${i + 1}</td><td>${Cval || ''}</td><td>${kararNo || ''}</td>`;
       tb.appendChild(tr);
     });
 
     // Pager'ı DOM’a eklendikten hemen sonra dene
-    setTimeout(()=>{ if (window.__obApplyPager) window.__obApplyPager(tbl, 20); }, 0);
+    setTimeout(() => { if (window.__obApplyPager) window.__obApplyPager(tbl, 20); }, 0);
     return tbl;
   }
 
@@ -187,7 +187,7 @@ function computeKararNo(r){
     if (Array.isArray(data)){
       const tbl = buildTableFromRows(data);
       body.appendChild(tbl);
-      setTimeout(()=>{ if (window.__obApplyPager) window.__obApplyPager(tbl, 20); }, 0);
+      setTimeout(() => { if (window.__obApplyPager) window.__obApplyPager(tbl, 20); }, 0);
     } else if (data instanceof Node){
       body.appendChild(data);
     } else {
@@ -197,7 +197,7 @@ function computeKararNo(r){
     const source = modal.querySelector('#cmSource');
     if (source) source.textContent = location.href;
 
-    modal.classList.add('is-open'); 
+    modal.classList.add('is-open');
     modal.setAttribute('aria-hidden','false');
   };
 })();
@@ -218,11 +218,11 @@ function computeKararNo(r){
     const titleEl = document.getElementById('modal-title');
     if (!modal || !tbody || !titleEl) return false;
 
-    const B = (typeof letterToIndex==='function') ? letterToIndex('B') : 1;
-    const C = (typeof letterToIndex==='function') ? letterToIndex('C') : 2;
-    const E = (typeof letterToIndex==='function') ? letterToIndex('E') : 4;
+    const B = (typeof letterToIndex === 'function') ? letterToIndex('B') : 1;
+    const C = (typeof letterToIndex === 'function') ? letterToIndex('C') : 2;
+    const E = (typeof letterToIndex === 'function') ? letterToIndex('E') : 4;
 
-    titleEl.textContent = 'Detaylı Liste — ' + (title||'Detay');
+    titleEl.textContent = 'Detaylı Liste — ' + (title || 'Detay');
     tbody.innerHTML = '';
 
     if (!Array.isArray(rowIdxs)) rowIdxs = [];
@@ -232,20 +232,20 @@ function computeKararNo(r){
     uniq.forEach((ri, ix) => {
       const r = rows[ri] || [];
       const siraNo = ix + 1;
-      const esas = (Array.isArray(r) ? (r[C]||'') : (r && r.C)) || '';
-      const tarih = String(Array.isArray(r) ? (r[E]||'') : (r && r.E) || '');
+      const esas = (Array.isArray(r) ? (r[C] || '') : (r && r.C)) || '';
+      const tarih = String(Array.isArray(r) ? (r[E] || '') : (r && r.E) || '');
       const yil = (tarih.match(/\b(\d{4})\b/) || [])[1] || 'YYYY';
-      const siraGercek = String(Array.isArray(r) ? (r[B]||'') : (r && r.B) || '').trim();
-      const kararNo = `${yil}/${siraGercek||'?'}`;
+      const siraGercek = String(Array.isArray(r) ? (r[B] || '') : (r && r.B) || '').trim();
+      const kararNo = `${yil}/${siraGercek || '?'}`;
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${siraNo}</td><td>${esas||'-'}</td><td>${kararNo}</td>`;
+      tr.innerHTML = `<td>${siraNo}</td><td>${esas || '-'}</td><td>${kararNo}</td>`;
       tbody.appendChild(tr);
     });
 
     // Detay modal tablosu için emniyet çağrısı
-    setTimeout(()=>{ 
-      const t=document.querySelector('#modal-table'); 
-      if (t && window.__obApplyPager) window.__obApplyPager(t,20); 
+    setTimeout(() => {
+      const t = document.querySelector('#modal-table');
+      if (t && window.__obApplyPager) window.__obApplyPager(t,20);
     }, 0);
 
     modal.classList.add('active');
@@ -272,7 +272,7 @@ function computeKararNo(r){
 
   // sadece satırları gizle/göster; tbody içeriğini yeniden yazma
   function obApplyPager(table, pageSize){
-    try{
+    try {
       if (!table || table.__pagerApplied) return;
       pageSize = pageSize || 20;
 
@@ -282,7 +282,7 @@ function computeKararNo(r){
       const total = rows.length;
       if (total <= pageSize) return;
 
-      rows.forEach((tr, i)=> { tr.dataset.pgIndex = i; });
+      rows.forEach((tr, i) => { tr.dataset.pgIndex = i; });
 
       let page = 1;
       const pages = Math.ceil(total / pageSize);
@@ -290,61 +290,61 @@ function computeKararNo(r){
       // Find appropriate footer: modal-foot or card-footer/card-foot
       const modal = table.closest('.cmodal, .modal-card');
       let footer = modal ? modal.querySelector('.modal-foot') : null;
-      
+
       if (!footer) {
         const card = table.closest('.card');
         footer = card ? (card.querySelector('.card-footer') || card.querySelector('.card-foot')) : null;
       }
 
       const pagerId = (table.id || 'table') + '_pager';
-  let pager = footer ? footer.querySelector('#'+pagerId) : table.parentElement.querySelector('#'+pagerId);
-      
+      let pager = footer ? footer.querySelector('#' + pagerId) : table.parentElement.querySelector('#' + pagerId);
+
       if (!pager){
         pager = document.createElement('div');
         pager.id = pagerId;
-  pager.className = 'pager';
-  pager.style.display='flex';
-  pager.style.alignItems='center';
-  pager.style.gap='12px';
-  pager.style.justifyContent='space-between';
+        pager.className = 'pager';
+        pager.style.display = 'flex';
+        pager.style.alignItems = 'center';
+        pager.style.gap = '12px';
+        pager.style.justifyContent = 'space-between';
         // modal kapanmasın
-        pager.addEventListener('click', (ev)=> ev.stopPropagation());
-        
+        pager.addEventListener('click', (ev) => ev.stopPropagation());
+
         if (footer) {
           footer.appendChild(pager);
         } else {
-          pager.style.marginTop='10px';
+          pager.style.marginTop = '10px';
           table.parentElement.appendChild(pager);
         }
       }
 
       function render(){
-        const start = (page-1)*pageSize;
-        const end   = page*pageSize;
-        rows.forEach((tr, i)=>{
-          tr.style.display = (i>=start && i<end) ? '' : 'none';
+        const start = (page - 1) * pageSize;
+        const end   = page * pageSize;
+        rows.forEach((tr, i) => {
+          tr.style.display = (i >= start && i < end) ? '' : 'none';
         });
 
         pager.innerHTML = '';
         const left = document.createElement('div');
         const center = document.createElement('div');
-        const right= document.createElement('div');
-        center.className='muted';
+        const right = document.createElement('div');
+        center.className = 'muted';
         center.textContent = `Sayfa ${page} / ${pages} — ${total} kayıt`;
 
         function mkBtn(label, disabled, on){
-          const b=document.createElement('button');
-          b.className='btn ghost';
-          b.type='button';
-          b.textContent=label;
-          b.disabled=!!disabled;
-          b.addEventListener('click', (ev)=> ev.stopPropagation());
+          const b = document.createElement('button');
+          b.className = 'btn ghost';
+          b.type = 'button';
+          b.textContent = label;
+          b.disabled = !!disabled;
+          b.addEventListener('click', (ev) => ev.stopPropagation());
           if (on) b.addEventListener('click', on);
           return b;
         }
 
-        left.appendChild(mkBtn('Önceki', page===1, ()=>{ page--; render(); }));
-        right.appendChild(mkBtn('Sonraki', page===pages, ()=>{ page++; render(); }));
+        left.appendChild(mkBtn('Önceki', page === 1, () => { page--; render(); }));
+        right.appendChild(mkBtn('Sonraki', page === pages, () => { page++; render(); }));
         pager.appendChild(left);
         pager.appendChild(center);
         pager.appendChild(right);
@@ -352,26 +352,26 @@ function computeKararNo(r){
 
       render();
       table.__pagerApplied = true;
-    }catch(e){ console.error('ob pager error', e); }
+    } catch (e){ console.error('ob pager error', e); }
   }
   window.__obApplyPager = obApplyPager;
 
   function applyPagerToVisibleTables(){
-    ['#modal-table','#noJudgeTable','#hakimKararlar'].forEach(sel=>{
+    ['#modal-table','#noJudgeTable','#hakimKararlar'].forEach(sel => {
       const t = document.querySelector(sel);
       if (t) obApplyPager(t, 20);
     });
-    document.querySelectorAll('.cm-body table').forEach(t=>{
+    document.querySelectorAll('.cm-body table').forEach(t => {
       obApplyPager(t, 20);
     });
   }
 
   (function hookModalOpen(){
-    ['detail-modal','caseModal'].forEach(id=>{
+    ['detail-modal','caseModal'].forEach(id => {
       const m = document.getElementById(id);
       if (!m) return;
-      const onOpen = ()=>{
-        const opened = m.classList.contains('is-open') || m.classList.contains('active') || m.getAttribute('aria-hidden')==='false';
+      const onOpen = () => {
+        const opened = m.classList.contains('is-open') || m.classList.contains('active') || m.getAttribute('aria-hidden') === 'false';
         if (!opened) return;
         setTimeout(applyPagerToVisibleTables, 0);
       };
