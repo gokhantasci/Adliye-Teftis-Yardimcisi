@@ -6,7 +6,7 @@
   include __DIR__."/partials/navbar.php";
   include __DIR__."/partials/sidebar.php";
 ?>
-<main class="content">
+<main class="content" id="main-content">
   <!-- Sayfa başlığı ve açıklama -->
   <header class="page-header">
     <h1>Kesinleştirme ve İnfaza Verme Kontrolü</h1>

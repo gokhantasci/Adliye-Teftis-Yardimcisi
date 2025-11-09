@@ -16,7 +16,7 @@
   include __DIR__.'/partials/navbar.php';
   include __DIR__.'/partials/sidebar.php';
 ?>
-<main class="content">
+<main class="content" id="main-content">
   <header class="page-header">
     <h1>Kanun Yolu Kontrolü</h1>
     <p class="muted">İstinaf / Yargıtay süreçleri için UYAP kayıtları üzerinden tetkik notları ve yönlendirmeler.</p>

@@ -1,0 +1,235 @@
+/**
+ * ========================================
+ * MOBILE & SAFARI OPTIMIZATIONS
+ * ========================================
+ * Mobile-specific improvements and Safari compatibility fixes
+ * ========================================
+ */
+
+/* ============ SAFARI COMPATIBILITY ============ */
+
+/* Safari-specific fixes for flexbox */
+@supports (-webkit-appearance: none) {
+  .layout {
+    /* Ensure proper flexbox in Safari */
+    -webkit-box-sizing: border-box;
+  }
+}
+
+/* Safari tap highlight color */
+* {
+  -webkit-tap-highlight-color: rgba(244, 67, 54, 0.2);
+}
+
+/* Safari form styling */
+input, textarea, select, button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Safari smooth scrolling */
+html {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safari sticky position fix */
+.navbar, .sidebar {
+  -webkit-position: sticky;
+  position: sticky;
+}
+
+/* ============ MOBILE OPTIMIZATIONS ============ */
+
+/* Touch-friendly tap targets (minimum 44x44px) */
+button, a, input[type="submit"], input[type="button"], .btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Improve touch scrolling on mobile */
+.content, .sidebar {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Mobile-friendly focus states */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  button:hover, .btn:hover, a:hover {
+    /* Keep original state, add active state instead */
+  }
+  
+  /* Better active states for touch */
+  button:active, .btn:active, a:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* ============ RESPONSIVE BREAKPOINTS ============ */
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  /* Reduce font sizes slightly */
+  html {
+    font-size: 14px;
+  }
+  
+  /* Stack cards vertically */
+  .cards {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Full-width buttons */
+  .btn, button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Smaller padding for cards */
+  .card {
+    padding: 1rem;
+  }
+}
+
+/* Tablet landscape and small desktops */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Adjust sidebar width */
+  .sidebar {
+    width: 200px;
+  }
+  
+  /* Two-column grid for cards */
+  .cards--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============ PWA SAFE AREAS (iPhone X+) ============ */
+
+/* Safe area insets for notch devices */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  .navbar {
+    padding-top: calc(0.5rem + env(safe-area-inset-top));
+    padding-left: calc(1rem + env(safe-area-inset-left));
+    padding-right: calc(1rem + env(safe-area-inset-right));
+  }
+}
+
+/* ============ SAFARI SPECIFIC CSS GRID FIX ============ */
+
+@media not all and (min-resolution:.001dpcm) {
+  @supports (-webkit-appearance:none) {
+    /* Safari 10.1+ specific CSS Grid fixes */
+    .layout {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+      flex-direction: column;
+    }
+  }
+}
+
+/* ============ PERFORMANCE OPTIMIZATIONS ============ */
+
+/* GPU acceleration for smoother animations */
+.modal, .card, .btn {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Optimize repaints */
+.navbar, .sidebar {
+  will-change: transform;
+}
+
+/* ============ ACCESSIBILITY IMPROVEMENTS ============ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--accent-color, #F44336);
+  outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent-color, #F44336);
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  text-decoration: none;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* ============ PRINT STYLES ============ */
+
+@media print {
+  /* Hide navigation elements */
+  .navbar, .sidebar, .btn, button {
+    display: none !important;
+  }
+  
+  /* Optimize for printing */
+  .content {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Show all content */
+  .card, .modal {
+    page-break-inside: avoid;
+  }
+}
+
+/* ============ DARK MODE OPTIMIZATION ============ */
+
+@media (prefers-color-scheme: dark) {
+  /* Reduce white glow on OLED screens */
+  body {
+    background-color: #000;
+  }
+  
+  /* Improve readability */
+  ::selection {
+    background-color: rgba(244, 67, 54, 0.3);
+    color: white;
+  }
+}
+
+/* ============ REDUCED MOTION ============ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

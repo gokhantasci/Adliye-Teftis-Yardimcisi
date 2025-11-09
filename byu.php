@@ -14,7 +14,7 @@
   include __DIR__.'/partials/navbar.php';
   include __DIR__.'/partials/sidebar.php';
 ?>
-<main class="content">
+<main class="content" id="main-content">
   <header class="page-header">
     <h1>Basit Yargılama Usulü Zaman Kontrolü</h1>
     <p class="muted">Yüklediğiniz tabloyu işler ve denetim cetvelini hazırlar.</p>

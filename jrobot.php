@@ -5,7 +5,7 @@
   include __DIR__."/partials/navbar.php";
   include __DIR__."/partials/sidebar.php";
 ?>
- <main class="content">
+ <main class="content" id="main-content">
     <header class="page-header">
       <h1>JSON İstatatikçi Robot</h1>
       <p class="muted">JSON İstatistikçiden Elde Ettiğiniz verilerin derin analizi.</p>

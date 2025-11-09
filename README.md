@@ -526,7 +526,40 @@ Bu uygulama, adliye teftiş süreçlerini kolaylaştırmak için tüm meslektaş
 
 ## 🔄 Sürüm Geçmişi
 
-### v1.2 (Güncel - 2025-11-09)
+### v1.3 (Güncel - 2025-11-09)
+- ✅ **Unit Testing (Jest)**:
+  - Jest test framework kurulumu
+  - 27 test yazıldı, 100% başarılı
+  - Test coverage desteği
+  - Komutlar: `npm test`, `npm run test:watch`, `npm run test:coverage`
+- ✅ **CI/CD Pipeline (GitHub Actions)**:
+  - Otomatik linting, testing, security audit
+  - CodeQL güvenlik taraması
+  - Pull request ve push'larda otomatik çalışma
+- ✅ **PWA (Progressive Web App)**:
+  - manifest.json ile tam PWA desteği
+  - Service Worker ile offline çalışma
+  - Uygulama kısayolları
+  - Apple ve Android cihazlarda yüklenebilir
+- ✅ **Mobile & Safari Optimizasyonları**:
+  - Safari uyumluluk düzeltmeleri (-webkit- prefixes)
+  - Dokunmatik hedefler minimum 44x44px
+  - Safe area insets (iPhone X+ notch desteği)
+  - Touch-friendly etkileşimler
+  - Geliştirilmiş kaydırma performansı
+- ✅ **Lighthouse Optimizasyonları**:
+  - Critical resource preloading
+  - GPU acceleration
+  - Accessibility iyileştirmeleri
+  - SEO meta tags
+  - Print styles
+- ✅ **Dokümantasyon**:
+  - TypeScript migration guide (TYPESCRIPT_MIGRATION.md)
+  - Lighthouse optimization guide (LIGHTHOUSE.md)
+  - PWA icon generation guide
+  - Kapsamlı README güncellemeleri
+
+### v1.2 (2025-11-09)
 - ✅ **ESLint Entegrasyonu**: JavaScript kod kalitesi kontrolü
   - Flat config (ESLint v9+) kullanımı
   - 0 hata, 243 uyarı (optimum seviye)
@@ -568,6 +601,8 @@ Bu uygulama, adliye teftiş süreçlerini kolaylaştırmak için tüm meslektaş
 - ✅ E-posta entegrasyonu
 
 ### Gelecek Sürümler
+- 🔜 TypeScript migration (optional - guide available)
+- 🔜 PWA icon generation (actual branded icons)
 - 🔜 Gelişmiş raporlama
 - 🔜 PDF export özelliği
 - 🔜 Kullanıcı yetkilendirme sistemi
@@ -577,3 +612,65 @@ Bu uygulama, adliye teftiş süreçlerini kolaylaştırmak için tüm meslektaş
 ---
 
 **Son Güncelleme:** 2025-11-09
+
+## 🧪 Testing
+
+### Unit Tests
+
+Proje Jest test framework'ü kullanmaktadır:
+
+```bash
+# Testleri çalıştır
+npm test
+
+# Watch mode ile testleri çalıştır
+npm run test:watch
+
+# Coverage raporu oluştur
+npm run test:coverage
+```
+
+**Test İstatistikleri:**
+- 27 test, 100% başarılı
+- Utils.js için kapsamlı test coverage
+- Continuous Integration ile otomatik test
+
+### Linting
+
+```bash
+# Kod kalitesi kontrolü
+npm run lint
+
+# Otomatik düzeltme
+npm run lint:fix
+```
+
+## 🚀 CI/CD
+
+Proje GitHub Actions ile otomatik CI/CD pipeline'a sahiptir:
+
+- **ci.yml**: Her push ve PR'de otomatik linting, testing ve security audit
+- **codeql.yml**: Haftalık güvenlik taraması
+
+## 📱 PWA (Progressive Web App)
+
+Uygulama Progressive Web App standartlarını desteklemektedir:
+
+- ✅ Offline çalışma (Service Worker)
+- ✅ Cihaza yüklenebilir
+- ✅ Uygulama kısayolları
+- ✅ iOS ve Android desteği
+- ✅ Push notification desteği (gelecek)
+
+### PWA Yükleme
+
+1. Chrome/Edge'de sağ üst köşeden "Yükle" butonuna tıklayın
+2. iOS Safari'de "Paylaş" > "Ana Ekrana Ekle"
+3. Android Chrome'da "Ana ekrana ekle" bildirimi
+
+## 📚 Ek Dokümantasyon
+
+- [TYPESCRIPT_MIGRATION.md](TYPESCRIPT_MIGRATION.md) - TypeScript'e geçiş rehberi
+- [LIGHTHOUSE.md](LIGHTHOUSE.md) - Lighthouse optimizasyon rehberi
+- [assets/img/README.md](assets/img/README.md) - PWA icon üretim rehberi
+

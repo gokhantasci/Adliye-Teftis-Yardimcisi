@@ -5,7 +5,7 @@
   include __DIR__."/partials/navbar.php";
   include __DIR__."/partials/sidebar.php";
 ?>
- <main class="content">
+ <main class="content" id="main-content">
     <header class="page-header">
       <h1>Harç Tahsil Kontrol</h1>
       <p class="muted">UDF ve EXCEL dosyalarından özet üreterek Harç Tahsil Müzekkeresi Yazılmayanları analiz eder.</p>

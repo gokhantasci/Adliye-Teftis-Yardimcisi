@@ -5,7 +5,7 @@
   include __DIR__."/partials/navbar.php";
   include __DIR__."/partials/sidebar.php";
 ?>
-<main class="content">
+<main class="content" id="main-content">
   <div class="page-header">
     <h1>Yargılama Gideri Hesaplama</h1>
   </div>
