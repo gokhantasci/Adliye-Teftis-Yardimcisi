@@ -5,7 +5,7 @@
   include __DIR__."/partials/navbar.php";
   include __DIR__."/partials/sidebar.php";
 ?>
-<main class="content">
+<main class="content" id="main-content">
   <div class="page-header">
     <h1>Kesinleşme Hesapla</h1>
     <p class="muted">Girilen tarihlere göre mevzuata uygun hesaplama yapılır.</p>

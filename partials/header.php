@@ -123,6 +123,9 @@
   </script>
 </head>
 <body>
+<!-- Accessibility: Skip to main content link -->
+<a href="#main-content" class="skip-to-main">Ana içeriğe geç</a>
+
 <!-- Ana uygulama kapsayıcısı: Grid layout ile navbar, sidebar, content düzeni -->
 <div id="app" class="layout">
 

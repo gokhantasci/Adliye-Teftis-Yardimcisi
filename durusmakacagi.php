@@ -5,7 +5,7 @@
   include __DIR__ . '/partials/navbar.php';
   include __DIR__ . '/partials/sidebar.php';
 ?>
-<main class="content">
+<main class="content" id="main-content">
   <header class="page-header">
     <h1>Duruşma Kaçağı Kontrolü</h1>
     <p class="muted">Teftiş kayıtları için bilgilendirme ve şablon indirme.</p>

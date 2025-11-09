@@ -36,7 +36,7 @@
 ?>
 
 <!-- Ana içerik alanı -->
-<main class="content">
+<main class="content" id="main-content">
   <!-- Sayfa başlığı ve açıklama -->
   <header class="page-header">
     <h1>İddianame Değerlendirme Zaman Kontrolü</h1>

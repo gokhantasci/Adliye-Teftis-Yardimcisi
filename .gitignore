@@ -28,7 +28,7 @@ data/api.log
 *.php~
 .htaccess~
 
-# Node modules (if any)
+# Node modules and dependencies
 node_modules/
 package-lock.json
 yarn.lock
@@ -36,6 +36,14 @@ yarn.lock
 # Build artifacts
 dist/
 build/
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Jest cache
+.jest-cache/
 
 # OS files
 .DS_Store
@@ -54,5 +62,6 @@ Desktop.ini
 # Backup files
 *.backup
 *-backup.*
-node_modules/
-package-lock.json
+
+# TypeScript build info
+*.tsbuildinfo

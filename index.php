@@ -32,7 +32,7 @@
 ?>
 
 <!-- Ana içerik alanı -->
-<main class="content">
+<main class="content" id="main-content">
   <!-- Sayfa başlığı bölümü -->
   <div class="page-header">
     <h1>Panel</h1>

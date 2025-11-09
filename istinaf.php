@@ -5,7 +5,7 @@
   include __DIR__."/partials/navbar.php";
   include __DIR__."/partials/sidebar.php";
 ?>
-<main class="content">
+<main class="content" id="main-content">
   <div class="page-header">
     <h1>İstinaf Defteri</h1>  
 	<p class="muted">Yüklediğiniz istinaf defterini işler ve teftişe esas olabilecek değerler gösterir.</p>  
