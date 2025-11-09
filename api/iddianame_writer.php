@@ -5,9 +5,31 @@ declare(strict_types=1);
 @ini_set('zlib.output_compression','Off');
 if (function_exists('ob_get_level')) { while (ob_get_level()>0) { @ob_end_clean(); } }
 
+// --- CORS (preflight ve cross-origin POST için) ---
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origin) {
+  header('Access-Control-Allow-Origin: ' . $origin);
+  header('Vary: Origin');
+  header('Access-Control-Allow-Credentials: false');
+}
+$reqMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if ($reqMethod === 'OPTIONS') {
+  header('Access-Control-Allow-Methods: POST, OPTIONS');
+  header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+  header('Access-Control-Max-Age: 600');
+  http_response_code(204);
+  exit;
+}
+
 function jerr(int $code, string $msg){
   http_response_code($code);
   header('Content-Type: application/json; charset=utf-8');
+  // Basit hata kaydı (kritik değil)
+  if ($code >= 400) {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $m  = $_SERVER['REQUEST_METHOD'] ?? '?';
+    @error_log('[iddianame_writer] '.$code.' '.$msg.' ip='.$ip.' method='.$m);
+  }
   echo json_encode(['ok'=>false,'reason'=>$msg], JSON_UNESCAPED_UNICODE);
   exit;
 }
@@ -28,6 +50,13 @@ if (isset($_GET['ping'])) {
 
 // ---------- Input (defensive)
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+// Bazı sunucularda redirect sonrası method GET'e düşebiliyor; bu durumda yardımcı mesaj verelim
+if ($method !== 'POST' && !isset($_GET['ping'])) {
+  header('Allow: POST, OPTIONS');
+  // İstemci tarafında POST gönderildiğini sanıp burada GET görürsek muhtemel sebep: 301/302 redirect veya servis arası proxy.
+  $hint = 'Sadece POST kabul edilir (method='.$method.'). Olası neden: redirect POST->GET (örn. URL yeniden yazımı). Sağlık kontrolü için ?ping=1 kullanın.';
+  jerr(405, $hint);
+}
 $ctype  = $_SERVER['CONTENT_TYPE']    ?? '';
 $raw    = file_get_contents('php://input') ?: '';
 $data   = null;
@@ -257,8 +286,41 @@ $buildSimpleTable = function(array $rows) use ($doc, $nsW, $createTextCell): DOM
   return $tbl;
 };
 
-// 1) Önce ${sNo} içeren bir şablon satırı arayın
-$tplNodes = $xp->query('//w:tr[.//w:t[contains(., "${sNo}")]]');
+// Yardımcı: Bir w:tr satırındaki her hücrenin metnini tek parça olarak değiştir (run bölünmelerine dayanıklı)
+$replaceTokensInTr = function(DOMElement $tr, array $map) use ($xp, $doc, $nsW): void {
+  foreach ($xp->query('.//w:tc', $tr) as $tc) {
+    // Hücre metinlerini birleştir
+    $texts = [];
+    foreach ($xp->query('.//w:t', $tc) as $tn) { $texts[] = $tn->textContent; }
+    $joined = implode('', $texts);
+    if ($joined === '' && empty($texts)) continue;
+    foreach ($map as $k=>$v) { if ($joined !== '' && strpos($joined, $k) !== false) { $joined = str_replace($k, (string)$v, $joined); } }
+
+    // İlk p/r'yi bul ve stilini koruyarak yeniden yaz
+    $p = $xp->query('.//w:p', $tc)->item(0);
+    if (!$p) { $p = $doc->createElementNS($nsW, 'w:p'); $tc->appendChild($p); }
+    $firstR = $xp->query('.//w:r', $p)->item(0);
+    if ($firstR) {
+      $newR = $firstR->cloneNode(true);
+      foreach ($xp->query('.//w:t', $newR) as $oldT) { $oldT->parentNode->removeChild($oldT); }
+    } else {
+      $newR = $doc->createElementNS($nsW, 'w:r');
+    }
+    $t = $doc->createElementNS($nsW, 'w:t');
+    if (preg_match('/^\s|\s$/', $joined)) {
+      $t->setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+    }
+    $t->appendChild($doc->createTextNode($joined));
+    $newR->appendChild($t);
+    $toRemove = [];
+    foreach ($xp->query('./w:r', $p) as $rnode) { $toRemove[] = $rnode; }
+    foreach ($toRemove as $rn) { $p->removeChild($rn); }
+    $p->appendChild($newR);
+  }
+};
+
+// 1) Önce ${sNo} içeren bir şablon satırı arayın (run bölünmelerine dayanıklı)
+$tplNodes = $xp->query('//w:tr[contains(string(.), "${sNo}")]');
 if ($tplNodes && $tplNodes->length > 0) {
   $tplTr = $tplNodes->item(0);
   $parentTbl = $tplTr->parentNode; // w:tbl
@@ -267,7 +329,7 @@ if ($tplNodes && $tplNodes->length > 0) {
   // Üretilen satırları ekle
   foreach ($rows as $i => $r) {
     $tr = $tplTr->cloneNode(true);
-    // Placeholder metinlerini değiştir
+    // Placeholder metinlerini değiştir (hücre bazında, formatı koruyarak)
     $map = [
       '${sNo}'     => (string)($i+1),
       '${IDD_NO}'  => (string)($r['iddianameNo']    ?? ''),
@@ -278,11 +340,7 @@ if ($tplNodes && $tplNodes->length > 0) {
       '${SURE}'    => (string)($r['sureGun']        ?? ''),
       '${HAKIM}'   => (string)($r['hakim']          ?? ''),
     ];
-    foreach ($xp->query('.//w:t', $tr) as $tn) {
-      $text = $tn->textContent;
-      foreach ($map as $k=>$v) { if (strpos($text,$k) !== false) { $text = str_replace($k, $v, $text); } }
-      $tn->textContent = $text;
-    }
+    $replaceTokensInTr($tr, $map);
     $parentTbl->insertBefore($tr, $tplTr);
   }
   // Şablon satırı kaldır
@@ -398,7 +456,7 @@ if (!is_file($outDocx)) jerr(500,'DOCX kaydedilemedi.');
 if (filesize($outDocx) <= 0) jerr(500,'DOCX boş kaydedildi.');
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-header('Content-Disposition: attachment; filename="iddianame.docx"');
+header('Content-Disposition: attachment; filename="1- İDDİANAME DEĞERLENDİRME ZAMAN KONTROLÜ.docx"');
 header('Content-Length: '.filesize($outDocx));
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: public');

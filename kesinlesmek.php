@@ -35,7 +35,7 @@
       <aside id="col2">
         <!-- Uyarı metni -->
         <section class="card" style="margin-bottom:12px">
-          <div class="card-head" style="color:var(--muted)">
+          <div class="card-header" style="color:var(--muted)">
             <span class="material-symbols-rounded">info</span>
             <strong>Bilgi</strong>
           </div>
@@ -46,7 +46,7 @@
 
         <!-- UDF yükleme -->
         <section class="card card-upload" id="udfUploadCard">
-          <div class="card-head">
+          <div class="card-header">
             <span class="material-symbols-rounded">upload_file</span>
             <strong>UDF Yükleme</strong>
           </div>

@@ -1079,7 +1079,7 @@
 		  <label for="endDate"><b>Son tarih</b></label>
 		  <input id="endDate" type="date" value="${maxVal}">
 		  <button id="dateFilterBtn" type="button" class="btn">Filtrele</button>
-		  <button id="dateResetBtn" type="button" class="btn ghost">Tümünü Göster</button>
+          <button id="dateResetBtn" type="button" class="btn">Tümünü Göster</button>
 		</div>
 	  `;
         dz.insertAdjacentElement("afterend", wrap);
@@ -1293,10 +1293,8 @@
 		renderNotSentTablo(ozetData);
 
         // Toast
-        const body = `
-      <div><b>${totalRowsRead}</b> satır okundu; <b>${skippedEmpty}</b> boş atlandı; <b>${dupRemoved}</b> mükerrer atlandı.</div>
-      <div>Kalan kayıt: <b>${deduped.length}</b>. <i>📊 Özet Tabloyu Aç</i> ile tabloyu görüntüleyebilirsiniz.</div>`;
-        toastWithIcon("success", "Rapor Hazır", body, 9000);
+                const bodyTxt = `<span class=\"material-symbols-rounded\" style=\"vertical-align:middle;font-size:20px;\">task_alt</span> ${totalRowsRead} satır okundu; ${skippedEmpty} boş; ${dupRemoved} mükerrer temizlendi. Kalan: ${deduped.length}. Özet tabloyu açabilirsiniz.`;
+                toastWithIcon("success", "Rapor Hazır", bodyTxt, 7500);
 
     }
 

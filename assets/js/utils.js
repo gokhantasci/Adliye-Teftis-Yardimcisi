@@ -257,7 +257,10 @@
     formatRetryMessage,
     createElement,
     $,
-    $$
+      $$,
+      showSpinner,
+    hideSpinner,
+    logEvent
   };
 
   // Also expose individual functions for backward compatibility
@@ -265,5 +268,184 @@
   window.escapeHtml = escapeHtml;
   window.normalizeTurkish = normalizeTurkish;
   window.formatRetryMessage = formatRetryMessage;
+    window.showSpinner = showSpinner;
+    window.hideSpinner = hideSpinner;
+  window.logEvent = logEvent;
+
+    /**
+     * Show global loading spinner
+     * @param {string} text - Optional text to display (default: "Veriler işleniyor...")
+     */
+    function showSpinner(text) {
+      const spinner = document.getElementById('globalSpinner');
+      if (!spinner) return;
+    
+      const textEl = spinner.querySelector('.spinner-text');
+      if (textEl && text) {
+        textEl.textContent = text;
+      }
+    
+      spinner.style.display = 'flex';
+    }
+
+    /**
+     * Hide global loading spinner
+     */
+    function hideSpinner() {
+      const spinner = document.getElementById('globalSpinner');
+      if (!spinner) return;
+      spinner.style.display = 'none';
+    }
+
+  // =============================
+  // Unified Log System
+  // =============================
+  const LOG_STORAGE_KEY = 'app_logs';
+  const LOG_EXCLUDE_TYPES = new Set(['ui', 'warn', 'log', 'error']); // exclude UI logs and console warn/log/error
+  const _logBuffer = loadLogsFromStorage();
+  const LOG_PAGER = { page: 1, pageSize: 10 };
+  
+  function loadLogsFromStorage(){
+    try{
+      const stored = localStorage.getItem(LOG_STORAGE_KEY);
+      if(!stored) return [];
+      const parsed = JSON.parse(stored);
+      return parsed.map(e => ({...e, time: new Date(e.time)}));
+    }catch(_){ return []; }
+  }
+  
+  function saveLogsToStorage(){
+    try{
+      const toSave = _logBuffer.slice(-500).map(e => ({
+        time: e.time.toISOString(),
+        type: e.type,
+        message: e.message
+      }));
+      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(toSave));
+    }catch(_){ /* silent */ }
+  }
+  
+  function logEvent(type, message){
+    try{
+      if (LOG_EXCLUDE_TYPES.has(type)) return; // skip noisy UI logs
+      const time = new Date();
+      _logBuffer.push({ time, type, message });
+      if (_logBuffer.length > 500) _logBuffer.shift();
+      renderLogsPage();
+      saveLogsToStorage();
+    }catch(_e){ /* silent */ }
+  }
+
+  function renderLogPanelRow(entry, targetBody){
+    const body = targetBody || document.getElementById('logPanelBody');
+    if(!body) return;
+    const row = document.createElement('div');
+    row.className = 'log-row';
+    const hh = String(entry.time.getHours()).padStart(2,'0');
+    const mm = String(entry.time.getMinutes()).padStart(2,'0');
+    const ss = String(entry.time.getSeconds()).padStart(2,'0');
+    const t = String(entry.type||'info').toLowerCase();
+    const typeClass = `log-type log-type-${t}`;
+    row.innerHTML = `<div class="log-time">${hh}:${mm}:${ss}</div>
+      <div><span class="${typeClass}">${escapeHtml(entry.type)}</span> <span class="log-msg">${escapeHtml(entry.message)}</span></div>`;
+    body.appendChild(row);
+    // Descending list: no auto-scroll
+  }
+
+  function updateLogStats(){
+    const stats = document.getElementById('logStats');
+    // Show filtered count, not total buffer count
+    const filtered = _logBuffer.filter(e => !LOG_EXCLUDE_TYPES.has(e.type));
+    if(stats) stats.textContent = filtered.length + ' kayıt';
+  }
+  
+  function renderLogsPage(){
+    const body = document.getElementById('logPanelBody');
+    const info = document.getElementById('logPagerInfo');
+    const prev = document.getElementById('logPrevBtn');
+    const next = document.getElementById('logNextBtn');
+    if(!body) return;
+
+  // Newest first
+  const data = _logBuffer.filter(e => !LOG_EXCLUDE_TYPES.has(e.type)).sort((a,b)=> b.time - a.time);
+    const total = data.length;
+    const pages = Math.max(1, Math.ceil(total / LOG_PAGER.pageSize));
+    if (LOG_PAGER.page < 1) LOG_PAGER.page = 1;
+    if (LOG_PAGER.page > pages) LOG_PAGER.page = pages;
+
+  const start = (LOG_PAGER.page - 1) * LOG_PAGER.pageSize;
+  const slice = data.slice(start, start + LOG_PAGER.pageSize);
+    body.innerHTML = '';
+    slice.forEach(entry => renderLogPanelRow(entry, body));
+    updateLogStats();
+
+    if (info) info.textContent = `Sayfa ${LOG_PAGER.page}/${pages} — ${total} kayıt`;
+    if (prev) prev.disabled = (LOG_PAGER.page === 1);
+    if (next) next.disabled = (LOG_PAGER.page === pages);
+  }
+
+  function renderAllLogs(){
+    renderLogsPage();
+  }
+  
+  // Sayfa yüklendiğinde tüm logları render et
+  function bindLogPagerControls(){
+    const prev = document.getElementById('logPrevBtn');
+    const next = document.getElementById('logNextBtn');
+    if (prev) prev.addEventListener('click', function(){ LOG_PAGER.page--; renderLogsPage(); });
+    if (next) next.addEventListener('click', function(){ LOG_PAGER.page++; renderLogsPage(); });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ bindLogPagerControls(); renderAllLogs(); });
+  } else {
+    bindLogPagerControls();
+    setTimeout(renderAllLogs, 100);
+  }
+  // Intercept console methods
+    ['log','warn','error','info'].forEach(kind => {
+      const original = console[kind];
+      console[kind] = function(...args){
+        try{ logEvent(kind, args.map(a=> typeof a==='string'? a: JSON.stringify(a)).join(' ')); }catch(_){}
+        original.apply(console, args);
+      };
+    });
+    // Ensure toast logging at display-time and auto-rewrap if reassigned later
+    (function ensureToastLogging(){
+      function normalize(args){
+        if (!args.length) return {};
+        if (typeof args[0] === 'object' && !Array.isArray(args[0])) return {...args[0]};
+        const type = args[0]; const title = args[1]; const body = args[2]; const extra = (typeof args[3]==='object'&&args[3])||{};
+        return { ...extra, type, title, body };
+      }
+      function wrap(fn){
+        if (typeof fn !== 'function') return fn;
+        if (fn.__wrappedToastLogger) return fn;
+        const wrapped = function(){
+          const opts = normalize(arguments);
+          try{
+            const toastType = String(opts.type||'info').toLowerCase();
+            const msg = (opts.title||'') + (opts.body? ': '+opts.body:'');
+            if (window.logEvent) window.logEvent(toastType, msg);
+          }catch(_){ }
+          return fn.apply(this, [opts]);
+        };
+        wrapped.__wrappedToastLogger = true;
+        return wrapped;
+      }
+      function hook(){
+        if (typeof window.toast === 'function' && !window.toast.__wrappedToastLogger){
+          window.toast = wrap(window.toast);
+          window.__TOAST_LOG_WRAP_ACTIVE = true;
+        }
+      }
+      // initial and keep alive
+      hook();
+      setTimeout(hook, 0);
+      setInterval(hook, 1000);
+    })();
+
+    // Expose buffer for export if needed
+    window.__LOG_BUFFER__ = _logBuffer;
 
 })(window);

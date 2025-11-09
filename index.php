@@ -41,33 +41,10 @@
   
   <!-- 
     İki sütunlu kart düzeni
-    - Sol: Haber/Güncelleme kartı
-    - Sağ: E-posta bırakma kartı
+    - Sol: E-posta bırakma kartı
+    - Sağ: Haber/Güncelleme kartı
   -->
   <section class="cards cards--2">
-    
-    <!-- ============ HABER/GÜNCELLEME KARTI ============ -->
-    <article class="card news-drop" id="newsCard" role="region" aria-labelledby="newsTitle">
-      <div class="news-drop__body">
-        <!-- Haber ikonu -->
-        <div class="news-drop__icon" aria-hidden="true">📰</div>
-        
-        <div class="news-drop__texts">
-          <!-- Kart başlığı -->
-          <h3 id="newsTitle" class="news-drop__title">Uygulama Güncellemeleri / Haber</h3>
-          <p class="news-drop__hint">Platformdaki duyuru ve değişiklikler.</p>
-          
-          <!-- Haber içeriği bölümü -->
-          <div class="news-drop__content">
-            <!-- Meta bilgiler (toplam haber sayısı, son güncelleme tarihi) -->
-            <div id="newsMeta" class="news-meta muted" aria-live="polite"></div>
-            
-            <!-- Haber listesi (JavaScript ile dinamik doldurulur) -->
-            <div id="newsList" class="news-list"></div>
-          </div>
-        </div>
-      </div>
-    </article>
     
     <!-- ============ E-POSTA BIRAKMA KUTUSU ============ -->
     <article class="card mail-drop" id="mailDropBox" role="region" aria-labelledby="mailDropTitle">
@@ -82,11 +59,6 @@
           
           <!-- E-posta giriş formu -->
           <div class="mail-drop__input">
-            <!-- 
-              E-posta input alanı
-              Sadece @adalet.gov.tr uzantılı e-postalar kabul edilir
-              Sürükle-bırak (drag & drop) özelliği desteklenir
-            -->
             <input 
               id="mailDropInput" 
               type="email" 
@@ -95,20 +67,13 @@
               inputmode="email" 
               aria-label="E-posta adresi">
             
-            <!-- Gönder butonu (başlangıçta devre dışı) -->
             <button id="mailDropSendBtn" class="btn btn-primary" type="button" disabled>
               Mesajı Gönder
             </button>
           </div>
           
-          <!-- Toast mesajları için alan (başarı/hata mesajları) -->
           <div id="mailDropToast" class="mail-drop__toast" aria-live="polite"></div>
           
-          <!-- 
-            Honeypot alanı (bot koruması için)
-            Gerçek kullanıcılar bu alanı görmez ve doldurmaz
-            Botlar doldurursa form reddedilir
-          -->
           <input 
             id="mailHp" 
             class="hp" 
@@ -118,23 +83,51 @@
             autocomplete="off" 
             style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
           
-          <!-- E-posta önizleme alanı (debug/test için, normalde gizli) -->
           <div class="mail-drop__preview">
             <pre id="mailPreview" class="mail-drop__pre" aria-hidden="true" hidden></pre>
           </div>
+        </div>
+      </div>
+    </article>
+    
+    <!-- ============ HABER/GÜNCELLEME KARTI ============ -->
+    <article class="card news-drop" id="newsCard" role="region" aria-labelledby="newsTitle">
+      <div class="news-drop__body">
+        <div class="news-drop__icon" aria-hidden="true">📰</div>
+        
+        <div class="news-drop__texts">
+          <h3 id="newsTitle" class="news-drop__title">Uygulama Güncellemeleri / Haber</h3>
+          <p class="news-drop__hint">Platformdaki duyuru ve değişiklikler.</p>
           
-          <!-- 
-            Sayfalama kontrolü (haber kartı için)
-            Not: Bu alan mail kartında yer alıyor ama aslında haber kartı için
-            Bu bir düzen hatası olabilir, düzeltilmesi gerekebilir
-          -->
+          <div class="news-drop__content">
+            <div id="newsMeta" class="news-meta muted" aria-live="polite"></div>
+            <div id="newsList" class="news-list"></div>
+          </div>
+          
           <nav id="newsPager" class="pager" role="navigation" aria-label="Haber sayfalama"></nav>
         </div>
       </div>
     </article>
     
   </section>
+
+  <!-- ============ HAKKINDA KARTI ============ -->
+  <section class="cards cards--1" style="margin-top: 24px;">
+    <article class="card" id="aboutCard" role="region" aria-labelledby="aboutTitle">
+      <div class="card-body" style="padding: 24px;">
+        <h3 id="aboutTitle" style="display:flex;align-items:center;gap:8px;margin:0 0 16px 0;">
+          <span class="material-symbols-rounded">info</span>
+          Hakkında
+        </h3>
+        <div id="aboutContent" class="about-content" style="line-height:1.8;">
+          <p class="muted">Yükleniyor...</p>
+        </div>
+      </div>
+    </article>
+  </section>
 </main>
+
+<script src="/assets/js/about-loader.js" defer></script>
 
 <!-- Ortak footer'ı dahil et -->
 <?php include __DIR__."/partials/footer.php"; ?>

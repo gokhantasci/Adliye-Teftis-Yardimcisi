@@ -3,6 +3,7 @@
   const input = $("#excelInput");
   const runBtn = $("#run");
   if (!input) return;
+  const dropZone = document.getElementById('dropZone');
   let resultCard = $("#resultCard");
   if (!resultCard){
     const panel = document.createElement("section");
@@ -36,7 +37,9 @@
   const headEl = $("#resultHead");
   const bodyEl = $("#resultBody");
   function parseCSV(text){
-    const sep = text.indexOf(";") > -1 and text.indexOf(",") == -1 ? ";" : ",";
+    const hasSemicolon = text.indexOf(";") > -1;
+    const hasComma = text.indexOf(",") > -1;
+    const sep = hasSemicolon && !hasComma ? ";" : ",";
     const rows = text.split(/\r?\n/).filter(r=>r.trim().length>0).map(r => r.split(sep).map(c => c.replace(/^\uFEFF/, '').trim()));
     return {header: rows[0]||[], rows: rows.slice(1)};
   }
@@ -155,6 +158,18 @@
       const f = input.files && input.files[0];
       if (!f) { alert("Lütfen bir dosya seçin."); return; }
       onInputChanged({target: {files:[f]}});
+    });
+  }
+
+  // Dropzone etkileşimi (sürükle-bırak)
+  if (dropZone){
+    dropZone.addEventListener('click', ()=> input && input.click());
+    ['dragenter','dragover'].forEach(ev=>dropZone.addEventListener(ev, e=>{ e.preventDefault(); dropZone.classList.add('is-over'); }));
+    ['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev, e=>{ e.preventDefault(); dropZone.classList.remove('is-over'); }));
+    dropZone.addEventListener('drop', e=>{
+      const dt = e.dataTransfer; if (!dt || !dt.files || dt.files.length===0) return;
+      const f = dt.files[0];
+      runFromFile(f).catch(err=>{ console.error(err); alert(err.message||'Dosya okunamadı.'); });
     });
   }
 })();

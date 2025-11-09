@@ -18,8 +18,8 @@
 		  <!-- col10: 4 sütunlu ilk satır -->
 			<div id="col10RowTop" class="row-4">
 			  <!-- 1) Hakim/Başkan -->
-			  <section class="card" id="hakimCard">
-				<div class="card-head">
+			  <section class="card" id="hakimCard" style="display:none">
+				<div class="card-header">
 				  <span class="material-symbols-rounded">gavel</span>
 				  <strong>Hakim / Başkan</strong>
 				</div>
@@ -29,8 +29,8 @@
 			  </section>
 
 			  <!-- 2) Cumhuriyet Savcısı -->
-			  <section class="card" id="savciCard">
-				<div class="card-head">
+			  <section class="card" id="savciCard" style="display:none">
+				<div class="card-header">
 				  <span class="material-symbols-rounded">verified_user</span>
 				  <strong>Cumhuriyet Savcısı</strong>
 				</div>
@@ -40,8 +40,8 @@
 			  </section>
 
 			  <!-- 3) Katip -->
-			  <section class="card" id="katipCard">
-				<div class="card-head">
+			  <section class="card" id="katipCard" style="display:none">
+				<div class="card-header">
 				  <span class="material-symbols-rounded">contact_mail</span>
 				  <strong>Katip</strong>
 				</div>
@@ -51,7 +51,7 @@
 			  </section>
 
 			  <!-- 4) JSON Yükleme kartı (mevcut #jsonUploadCard buraya taşınacak) -->
-			  <div id="jsonUploadCol"></div>
+        <div id="jsonUploadCol" style="display:flex;flex-direction:column;align-self:stretch;min-height:100%;"></div>
 			</div>
    		
       </div>
@@ -60,7 +60,7 @@
       <aside id="col2">
         <!-- Uyarı metni -->
         <section class="card" style="margin-bottom:12px">
-          <div class="card-head" style="color:var(--muted)">
+          <div class="card-header" style="color:var(--muted)">
             <span class="material-symbols-rounded">info</span>
             <strong>Bilgi</strong>
           </div>
@@ -70,8 +70,8 @@
         </section>
 
         <!-- UDF yükleme -->
-        <section class="card card-upload" id="jsonUploadCard">
-          <div class="card-head">
+  <section class="card card-upload" id="jsonUploadCard" style="margin-top:0;">
+          <div class="card-header">
             <span class="material-symbols-rounded">upload_file</span>
             <strong>JSON Yükleme</strong>
           </div>
@@ -105,19 +105,7 @@
 <script src="/assets/js/jszip.min.js"></script>
 <script src="/assets/js/xlsx-loader.js"></script>
 <script src="/assets/js/jrobot.js"></script>
-<script>
-(function(){
-  // col10'u tamamen temizlemiştik; grid zaten yerleştirildi.
-  // Sağdaki mevcut yükleme kartını (#jsonUploadCard) alıp 4. kolona taşıyoruz.
-  const src = document.getElementById('jsonUploadCard');
-  const dest = document.getElementById('jsonUploadCol');
-  if (src && dest) {
-    dest.appendChild(src);                // aynı düğümü yeni yere taşır
-    src.style.marginTop = '0';            // kart arası boşluk grid’den gelsin
-    // Eğer aside’da "excelUploadMount" boş kaldıysa orada kalabilir; istenirse ayrıca taşırız.
-  }
-})();
-</script>
+<!-- JSON yükleme kartı yerinde kalır; Çoklu Excel kartı sol kolonda (#jsonUploadCol) dinamik olarak eklenecek -->
 
 
 </body>

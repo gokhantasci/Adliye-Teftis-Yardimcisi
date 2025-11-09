@@ -827,7 +827,7 @@
 		renderCombinedTable();
 		renderCombinedPager();
 		const stats = document.querySelector("#combinedStats");
-		if (stats) stats.innerHTML = `Kayıt: <strong>${fmtInt(COMB.filtered.length)}</strong> / Toplam: ${fmtInt(COMB.all.length)}`;
+		if (stats) stats.innerHTML = `<span class=\"badge\">${fmtInt(COMB.filtered.length)} / ${fmtInt(COMB.all.length)} kayıt</span>`;
 	  };
 
 	  // Eventler
@@ -841,7 +841,12 @@
 	  };
 
 	  // İlk çizim
-	  refresh();
+	refresh();
+	// UDF okunduysa sağdaki bilgi kartını gizle
+	if (COMB.all.length > 0){
+		const infoCard = document.querySelector('#col2 > section.card:first-of-type');
+		infoCard && (infoCard.style.display='none');
+	}
 	}
 
 
@@ -852,7 +857,8 @@
 	  const wantOneri  = COMB.oneri  !== "__ALL__";
 
 	  // Varsayılan: eşleşemeyenler gizli
-	  let arr = COMB.all.filter(r => COMB.showUnmatched || !isUnmatched(r));
+	  // Boş öneri içeren kayıtları tamamen gizle
+	  let arr = COMB.all.filter(r => (r.oneri || r.oneriHtml || "").trim() !== "").filter(r => COMB.showUnmatched || !isUnmatched(r));
 
 	  if (q) {
 		arr = arr.filter(r => {

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
-  if (window.__iddianameBooted) return;
-  window.__iddianameBooted = true;
+  if (window.__gerekceliKararBooted) return;
+  window.__gerekceliKararBooted = true;
   
 
   const $ = (s, r=document) => r.querySelector(s);
@@ -27,40 +27,40 @@
   const esc  = (s) => String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
   // --- doğrulayıcılar
-  const RX_ID = /^\s*\d{4}\s*\/\s*\d{1,6}\s*$/;      // C ve F: YYYY/N...
-  const RX_DT = /^\s*\d{2}\/\d{2}\/\d{4}\s*$/;       // G: dd/mm/yyyy
+  const RX_ID = /^\s*\d{4}\s*\/\s*\d{1,6}\s*$/;      // Dava/Karar No: YYYY/N...
+  const RX_DT = /^\s*\d{2}\/\d{2}\/\d{4}\s*$/;       // Tarih: dd/mm/yyyy
   function isValidId(v){ return RX_ID.test(String(v||"")); }
   function isValidDate(v){ return RX_DT.test(String(v||"")); }
 
-  // 0-bazlı indeksler
-  const COL = { C:2, D:3, F:5, G:6, I:8, J:9, K:10, L:11 };
-  const ROW = { TITLE:2, BIRIM:4, ARALIK:5, HEADER:10, DATA_START:11 }; // D3,F5,F6,C11 başlık; veri C12
-  const TITLE_NEEDLE = norm("İDDİANAME DEĞERLENDİRİLME ZAMAN KONTROLÜ");
+  // 0-bazlı indeksler (Gerekçeli Karar: C=Esas No, G=Karar Türü, I=Kısa Karar Tarihi, K=Gerekçeli Karar Tarihi, L=Gecikme Süresi, N=Hakim)
+  const COL = { C:2, D:3, F:5, G:6, I:8, K:10, L:11, N:13 };
+  const ROW = { TITLE:2, BIRIM:4, ARALIK:5, HEADER:10, DATA_START:11 };
+  const TITLE_NEEDLE = norm("GEREKÇELİ KARARIN ZAMAN KONTROLÜ");
 
   const state = {
     rows: [], sheetName: "", birimAdi: "", denetimAraligi: "", currentPage: 1, searchTerm: "", delayCheckDone: false
   };
 
   function isDataHeaderRow(row){
-    const C = norm(row[2]), F = norm(row[5]), G = norm(row[6]),
-          I = norm(row[8]), J = norm(row[9]), K = norm(row[10]), L = norm(row[11]);
+    const C = norm(row[2]), G = norm(row[6]), I = norm(row[8]),
+          K = norm(row[10]), L = norm(row[11]), N = norm(row[13]);
     let score = 0;
-    if (C.startsWith("iddianame no")) score++;
-    if (F.includes("degerlendirme no") || F.includes("değerlendirme no")) score++;
-    if (G.includes("gonderildigi") || G.includes("gönderildiği")) score++;
-    if (I.includes("degerlendirme tarihi") || I.includes("değerlendirme tarihi")) score++;
-    if (J.includes("kabul") || J.includes("iade") || J.includes("degerlendirme") || J.includes("değerlendirme")) score++;
-    if (K.includes("sure") || K.includes("süre")) score++;
-    if (L === "hakim" || L === "hakim adi" || L === "hakim adı") score++;
-    return score >= 6;
+    // Gerekçeli Karar için başlık kontrolü: Esas No, Karar Türü, Kısa Karar Tarihi, Gerekçeli Karar Tarihi, Gecikme Süresi, Hakim
+    if (C.includes("esas") && C.includes("no")) score++;
+    if (G.includes("karar") && G.includes("turu")) score++;
+    if (I.includes("kisa") && I.includes("karar") && I.includes("tarih")) score++;
+    if (K.includes("gerekceli") && K.includes("karar") && K.includes("tarih")) score++;
+    if (L.includes("gecikme") && L.includes("sure")) score++;
+    if (N === "hakim" || N.includes("hakim")) score++;
+    return score >= 5;
   }
 
-  function looksLikeIddianameNo(s){
+  function looksLikeKararNo(s){
     const v = String(s || "").trim();
     return /^\d{4}\s*[/\-]\s*\d{1,6}$/.test(v);
   }
 
-  // ---------- Excel oku (StyleSheet’e sabit)
+  // ---------- Excel oku (StyleSheet'e sabit)
   async function readSheetExact(file){
     const XLSX = window.XLSX;
     if (!XLSX){ toast('danger','Bağımlılık','xlsx-loader.js yüklenemedi.'); return null; }
@@ -72,61 +72,62 @@
     const ws  = wb.Sheets[sheetName];
     const aoa = XLSX.utils.sheet_to_json(ws, { header:1, raw:false, defval:"" });
 
-    // D3 başlık kontrolü
+    // D3 başlık kontrolü (esnek - fazladan boşluğa toleranslı)
     const d3 = cell(aoa, ROW.TITLE, COL.D);
-    if (!d3 || !norm(d3).includes(TITLE_NEEDLE)){
-      toast('danger','Hatalı Tablo','D3 hücresinde beklenen başlık yok. Lütfen orijinal tabloyu yükleyiniz.');
-      return null;
+    const d3Norm = norm(d3);
+    // Normalize edilmiş metinde fazladan boşluklar zaten temizlenir
+    const hasValidTitle = d3Norm.includes("gerekceli kararin zaman kontrolu") || 
+                          d3Norm.includes("gerekceli karar") && d3Norm.includes("zaman") && d3Norm.includes("kontrol");
+    if (!hasValidTitle){
+      console.warn('D3 hücresinde beklenen başlık bulunamadı, ancak devam ediliyor. Bulunan:', d3);
     }
 
-    // Meta (F5, F6)
+    // Meta (F5 - sadece birim adı)
     const birim  = txt(cell(aoa, ROW.BIRIM, COL.F));
-    const aralik = txt(cell(aoa, ROW.ARALIK, COL.F));
 
     const headerRow = aoa[ROW.HEADER] || [];
     const okHeader =
-      norm(headerRow[COL.C]).startsWith("iddianame no") &&
-      (norm(headerRow[COL.F]).includes("degerlendirme") || norm(headerRow[COL.F]).includes("değerlendirme")) &&
-      (norm(headerRow[COL.G]).includes("gonderildigi") || norm(headerRow[COL.G]).includes("gönderildiği"));
-    if (!okHeader){ console.warn("Başlık satırı beklenenden farklı; veri C12’den okunacak."); }
+      (norm(headerRow[COL.C]).includes("esas") && norm(headerRow[COL.C]).includes("no")) &&
+      (norm(headerRow[COL.G]).includes("karar") && norm(headerRow[COL.G]).includes("turu")) &&
+      (norm(headerRow[COL.I]).includes("kisa") && norm(headerRow[COL.I]).includes("karar"));
+    if (!okHeader){ console.warn("Başlık satırı beklenenden farklı; veri C12'den okunacak."); }
 
-    // Veriyi C12’den itibaren oku
+    // Veriyi C12'den itibaren oku
     const rows = [];
     for (let r = ROW.DATA_START; r < aoa.length; r++){
       const row = aoa[r] || [];
       if (isDataHeaderRow(row)) continue;
 
-      const C = txt(row[COL.C]);
-      const F = txt(row[COL.F]);
-      const G = txt(row[COL.G]);
-      const I = txt(row[COL.I]);
-      const J = txt(row[COL.J]);
-      const K = txt(row[COL.K]);
-      const L = txt(row[COL.L]);
+      const C = txt(row[COL.C]); // Esas No
+      const G = txt(row[COL.G]); // Karar Türü
+      const I = txt(row[COL.I]); // Kısa Karar Tarihi
+      const K = txt(row[COL.K]); // Gerekçeli Karar Tarihi
+      const L = txt(row[COL.L]); // Gecikme Süresi
+      const N = txt(row[COL.N]); // Hakim
 
-      // sadece doğru formatlı satırlar
-      if (!isValidId(C) || !isValidId(F) || !isValidDate(G)) continue;
+      // En az Esas No dolu olsun
+      if (!C || C.length < 3) continue;
 
       const cN = norm(C);
-      const dN = norm(row[COL.D] ?? "");
 
-      if (cN.includes("sistemden alinmistir") || dN.includes("sistemden alinmistir")) continue;
+      // Sistem mesajlarını ve başlık satırlarını atla
+      if (cN.includes("sistemden alinmistir")) continue;
       if (cN === "kurul mufettisi" || cN === "hakim" || cN === "hâkim") continue;
       if (cN.startsWith("gelen dosya listesi") || cN.startsWith("birim adi") || cN.startsWith("denetim araligi")) continue;
-      if (!C && !F && !G) continue;
+      if (cN.includes("esas") && cN.includes("no")) continue; // başlık satırı
+      
+      // Boş satırları atla
+      if (!C && !G && !I && !K && !L && !N) continue;
 
-      const nonDataTail = !looksLikeIddianameNo(C) && !F && !G && !I && !J && !K && !L;
-      if (nonDataTail) continue;
-
-      rows.push({ iddianameNo:C, degerNo:F, gonderimTarihi:G, degerTar:I, degerDurum:J, sureGun:K, hakim:L });
+      rows.push({ esasNo:C, kararTuru:G, kisaKararTarihi:I, gerekceliKararTarihi:K, gecikme:L, hakim:N });
     }
 
     if (!rows.length){
-      toast('warning','Veri Yok','C12’den itibaren veri satırı bulunamadı.');
+      toast('warning','Veri Yok','C12\'den itibaren veri satırı bulunamadı.');
       return null;
     }
 
-    return { rows, sheetName, birimAdi: birim, denetimAraligi: aralik };
+    return { rows, sheetName, birimAdi: birim, denetimAraligi: "" };
   }
 
   // ---------- render + pager
@@ -158,20 +159,20 @@
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 
-  // Gecikme süresi kontrol ve uyarı (İddianame için: gönderim - değerlendirme tarihi)
+  // Gecikme süresi kontrol ve uyarı
   function checkDelayDiscrepancy(rows){
     if (!rows || rows.length < 3) return;
     
     let discrepancies = [];
     for (let i = 0; i < Math.min(3, rows.length); i++){
       const r = rows[i];
-      const gonderimDate = parseDate(r.gonderimTarihi);
-      const degerDate = parseDate(r.degerTar);
-      const reportedDelay = parseInt(r.sureGun, 10);
+      const kisaDate = parseDate(r.kisaKararTarihi);
+      const gerekceliDate = parseDate(r.gerekceliKararTarihi);
+      const reportedDelay = parseInt(r.gecikme, 10);
       
-      if (!gonderimDate || !degerDate || isNaN(reportedDelay)) continue;
+      if (!kisaDate || !gerekceliDate || isNaN(reportedDelay)) continue;
       
-      const calculatedDelay = daysDiff(gonderimDate, degerDate);
+      const calculatedDelay = daysDiff(kisaDate, gerekceliDate);
       if (calculatedDelay === null) continue;
       
       const diff = calculatedDelay - reportedDelay;
@@ -202,12 +203,11 @@
     if (state.searchTerm){
       const term = norm(state.searchTerm);
       filteredRows = state.rows.filter(r => {
-        return norm(r.iddianameNo).includes(term) ||
-               norm(r.degerNo).includes(term) ||
-               norm(r.gonderimTarihi).includes(term) ||
-               norm(r.degerTar).includes(term) ||
-               norm(r.degerDurum).includes(term) ||
-               norm(r.sureGun).includes(term) ||
+        return norm(r.esasNo).includes(term) ||
+               norm(r.kararTuru).includes(term) ||
+               norm(r.kisaKararTarihi).includes(term) ||
+               norm(r.gerekceliKararTarihi).includes(term) ||
+               norm(r.gecikme).includes(term) ||
                norm(r.hakim).includes(term);
       });
     }
@@ -224,7 +224,6 @@
         <span class="badge">${total} kayıt</span>
         ${state.sheetName ? `<span class="badge">${esc(state.sheetName)}</span>` : ""}
         ${state.birimAdi ? `<span class="badge">${esc(state.birimAdi)}</span>` : ""}
-        ${state.denetimAraligi ? `<span class="badge">${esc(state.denetimAraligi)}</span>` : ""}
       `;
     }
 
@@ -237,22 +236,20 @@
     let html = `<div class="table-wrap-inner">`;
     html += `<table class="table compact" id="previewXls">`;
     html += `<thead><tr class="center">
-      <th>İddianame No</th>
-      <th>İddianame Değerlendirme No</th>
-      <th>İddianamenin Gönderildiği Tarih</th>
-      <th>İddianame Değerlendirme Tarihi</th>
-      <th>Değerlendirme (Kabul-İade)</th>
-      <th>Süre (Gün)</th>
+      <th>Esas No</th>
+      <th>Karar Türü</th>
+      <th>Kısa Karar Tarihi</th>
+      <th>Gerekçeli Karar Tarihi (Onay Tarihi)</th>
+      <th>Gecikme Süresi (Gün)</th>
       <th>Hakim</th>
     </tr></thead><tbody>`;
     for (const r of pageRows){
       html += `<tr class="center">
-        <td>${esc(r.iddianameNo)}</td>
-        <td>${esc(r.degerNo)}</td>
-        <td>${esc(r.gonderimTarihi)}</td>
-        <td>${esc(r.degerTar)}</td>
-        <td>${esc(r.degerDurum)}</td>
-        <td class="num">${esc(r.sureGun)}</td>
+        <td>${esc(r.esasNo)}</td>
+        <td>${esc(r.kararTuru)}</td>
+        <td>${esc(r.kisaKararTarihi)}</td>
+        <td>${esc(r.gerekceliKararTarihi)}</td>
+        <td class="num">${esc(r.gecikme)}</td>
         <td>${esc(r.hakim)}</td>
       </tr>`;
     }
@@ -291,37 +288,39 @@
   }
 
   async function exportToDocx(){
-    // Minimum süre filtresi (gün)
-    const minEl = document.getElementById('minSureGunInput');
-    let minStr = (minEl && typeof minEl.value === 'string') ? minEl.value.trim() : '0';
-    let minDays = parseInt(minStr, 10);
-    if (isNaN(minDays) || minDays < 0) {
-      window.toast?.({type:'warning', title:'Geçersiz Değer', body:'Minimum Süre (Gün) 0 veya pozitif bir sayı olmalıdır.'});
-      return;
+    const minDelayInput = document.getElementById('minDelayInput');
+    const minDelay = minDelayInput ? parseInt(minDelayInput.value, 10) : 0;
+    
+    // Gecikme filtreleme
+    let filteredRows = state.rows;
+    if (minDelay > 0){
+      filteredRows = state.rows.filter(r => {
+        const delay = parseInt(r.gecikme, 10);
+        return !isNaN(delay) && delay >= minDelay;
+      });
+      if (filteredRows.length === 0){
+        window.toast?.({type:'warning', title:'Filtreleme', body:`${minDelay} gün ve üzeri gecikme olan kayıt bulunamadı.`});
+        return;
+      }
     }
-
+    
     const payload = {
 	  birimAdi: state.birimAdi || "",
-	  denetimAraligi: state.denetimAraligi || "",
-	  rows: Array.isArray(state.rows) ? state.rows : [],
+	  rows: Array.isArray(filteredRows) ? filteredRows : [],
 	  replaceVars: {
 		YER: (state.birimAdi || "").toUpperCase(),
 		TARIH: new Date().toLocaleDateString("tr-TR")
 	  }
 	};
-    if (!payload.rows.length) {
-      window.toast?.({type:'warning', title:'Veri yok', body:'Tabloda satır bulunamadı.'});
-      return;
-    }
     
     // Hakim istatistiği
     const hakimCounts = {};
-    const sureGunValues = [];
+    const gecikmeValues = [];
     payload.rows.forEach(r => {
       const h = String(r.hakim || '').trim();
       if(h) hakimCounts[h] = (hakimCounts[h] || 0) + 1;
-      const sureVal = parseInt(String(r.sureGun || '').replace(/[^\d-]/g,''), 10);
-      if(!isNaN(sureVal)) sureGunValues.push(sureVal);
+      const gecikmeVal = parseInt(String(r.gecikme || '').replace(/[^\d-]/g,''), 10);
+      if(!isNaN(gecikmeVal)) gecikmeValues.push(gecikmeVal);
     });
     const hakimList = Object.entries(hakimCounts)
       .sort((a,b) => b[1] - a[1])
@@ -332,37 +331,26 @@
     if(hakimList){
       toastMsg += `${hakimList} kayıt tespit edilmiştir.`;
     }
-    if(sureGunValues.length > 0){
-      const minGun = Math.min(...sureGunValues);
-      const maxGun = Math.max(...sureGunValues);
-      const avgGun = Math.round(sureGunValues.reduce((a,b)=>a+b,0) / sureGunValues.length);
+    if(gecikmeValues.length > 0){
+      const minGun = Math.min(...gecikmeValues);
+      const maxGun = Math.max(...gecikmeValues);
+      const avgGun = Math.round(gecikmeValues.reduce((a,b)=>a+b,0) / gecikmeValues.length);
       if(toastMsg) toastMsg += ' ';
       toastMsg += `En az: ${minGun} gün, En fazla: ${maxGun} gün, Ortalama: ${avgGun} gün.`;
     }
     if(toastMsg){
       window.toast?.({type:'info', title:'Aktarılan Hakimler', body:toastMsg});
     }
-
-    // Filtreden geçen satırlar: minDays > 0 ise sadece daha büyük olanlar; 0 ise tümü
-    const filteredRows = (minDays > 0)
-      ? payload.rows.filter(r => {
-          const v = parseInt(String(r.sureGun ?? '').replace(/[^\d-]/g,''), 10);
-          return !isNaN(v) && v >= minDays;
-        })
-      : payload.rows;
-
-    if (minDays > 0 && filteredRows.length === 0) {
-      window.toast?.({type:'warning', title:'Filtre Sonucu Boş', body:`${minDays} gün ve üzeri süreye sahip satır yok.`});
+    if (!payload.rows.length) {
+      window.toast?.({type:'warning', title:'Veri yok', body:'Tabloda satır bulunamadı.'});
       return;
     }
-
-    payload.rows = filteredRows;
-  // Use explicit .php to avoid server redirects that can drop POST bodies
-  const apiUrl = '/api/iddianame_writer.php';
+  // API endpoint: gerekcelikarar_writer.php (iddianame yerine)
+  const apiUrl = '/api/gerekcelikarar_writer.php';
     const bodyStr = JSON.stringify(payload);
     const exportBtn = document.getElementById('exportDocxBtn');
     if (exportBtn) { exportBtn.disabled = true; exportBtn.classList.add('busy'); }
-    console.log('[iddianame][export:init]', { url: apiUrl, method: 'POST', bytes: bodyStr.length, rowCount: payload.rows.length });
+    console.log('[gerekcelikarar][export:init]', { url: apiUrl, method: 'POST', bytes: bodyStr.length, rowCount: payload.rows.length });
 
     try{
       const startedAt = performance.now();
@@ -376,7 +364,7 @@
         body: bodyStr
       });
       const durMs = Math.round(performance.now() - startedAt);
-  console.log('[iddianame][export:response]', { status: res.status, durationMs: durMs, redirected: res.redirected, finalUrl: res.url, contentType: res.headers.get('Content-Type'), disposition: res.headers.get('Content-Disposition') });
+  console.log('[gerekcelikarar][export:response]', { status: res.status, durationMs: durMs, redirected: res.redirected, finalUrl: res.url, contentType: res.headers.get('Content-Type'), disposition: res.headers.get('Content-Disposition') });
       
       console.log('Sunucu yanıtı:', {
         status: res.status,
@@ -411,7 +399,7 @@
       }
 
       const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = '1- İDDİANAME DEĞERLENDİRME ZAMAN KONTROLÜ.docx';
+  const a = document.createElement('a'); a.href = url; a.download = '5- GEREKÇELİ KARAR ZAMAN KONTROLÜ.docx';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
       window.toast?.({type:'success', title:'İndiriliyor', body:'Denetime uygun Word belgesi indiriliyor.'});
@@ -431,10 +419,8 @@
     if (old) old.remove();
 
     const birim  = state.birimAdi || 'Belirtilmeyen birim';
-    const aralik = state.denetimAraligi || 'belirtilen';
     const count  = state.rows.length;
 
-    // Sayfadaki "Dosya Seç" alanıyla birebir görünüm için aynı kart/başlık yapısını kullan
     const html = `
     <section class="card card-upload" id="exportInfoCard" style="margin-top:12px">
       <div class="card-head">
@@ -443,11 +429,18 @@
       </div>
       <div class="card-body" style="display:block">
         <div class="muted" style="margin-bottom:8px">
-          ${esc(birim)} – ${esc(aralik)} aralığında <b>${count}</b> satır hazır.
+          ${esc(birim)} – <b>${count}</b> satır hazır.
         </div>
-        <div id="exportPickRow" style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;align-items:center">
-          <label for="minSureGunInput" class="muted" style="margin-right:4px">Minimum Süre (Gün):</label>
-          <input type="number" id="minSureGunInput" value="0" min="0" step="1" style="width:120px">
+        <div style="margin-bottom:10px">
+          <label for="minDelayInput" style="display:block;margin-bottom:4px;font-size:13px;color:var(--muted)">
+            Minimum Gecikme Süresi (Gün)
+          </label>
+          <input type="number" id="minDelayInput" class="input" value="0" min="0" step="1" 
+                 style="width:100%;max-width:200px" 
+                 placeholder="0">
+          <small class="muted" style="display:block;margin-top:4px">Bu değer ve üzeri gecikme olanlar aktarılır</small>
+        </div>
+        <div id="exportPickRow" style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
           <button class="btn" id="exportDocxBtn" type="button" style="display:inline-flex;align-items:center;gap:6px;">
             <span class="material-symbols-rounded">description</span><span>Word'e Aktar</span>
           </button>
@@ -458,8 +451,6 @@
     host.insertAdjacentHTML('afterend', html);
   document.getElementById('exportDocxBtn')?.addEventListener('click', exportToDocx);
   }
-
-  // exportHealthBtn kaldırıldı (sunucu durum kontrolü devre dışı)
 
   // ---------- süreç
   async function processExcel(file){
@@ -479,8 +470,7 @@
       renderCombinedPreview();
 
       const birim = state.birimAdi || "Belirtilmeyen birim";
-      const aralik = state.denetimAraligi || "belirtilmeyen tarih aralığı";
-      toast('success','Tablo Yüklendi', `${birim}'nin ${aralik} denetim tarihleri arasında yüklenen İddianame Değerlendirme tablosunda ${state.rows.length} adet kayda rastlanılmış olup yanda gösterilmektedir.`);
+      toast('success','Tablo Yüklendi', `${birim} biriminde yüklenen Gerekçeli Karar tablosunda ${state.rows.length} adet kayda rastlanılmış olup yanda gösterilmektedir.`);
       renderExportCard();
     } finally {
       window.XlsSpinner?.hide();
@@ -510,8 +500,8 @@
     const f = pickFirstExcelFile(fl);
     if (!f){ setChosenText(""); return; }
     setChosenText(`Seçilen: ${f.name}`);
-    window.setInlineXlsLoading('#xlsInlineSpinnerIdd', true);
-    Promise.resolve().then(() => processExcel(f)).finally(() => window.setInlineXlsLoading('#xlsInlineSpinnerIdd', false));
+    window.setInlineXlsLoading('#xlsInlineSpinnerGk', true);
+    Promise.resolve().then(()=>processExcel(f)).finally(()=>window.setInlineXlsLoading('#xlsInlineSpinnerGk', false));
 	if (window.jQuery && typeof window.jQuery.getJSON === "function") {
 		  window.jQuery.getJSON("https://sayac.657.com.tr/arttirkarar", function(response) {
 			try {
@@ -536,25 +526,26 @@
     elDrop.addEventListener("drop", e => {
       const files = e.dataTransfer?.files;
       if (!files || files.length===0){ toast('warning','Dosya','Bırakılan dosya algılanamadı.'); return; }
-      window.setInlineXlsLoading('#xlsInlineSpinnerIdd', true);
-      Promise.resolve().then(() => handleFiles(files)).finally(() => window.setInlineXlsLoading('#xlsInlineSpinnerIdd', false));
+      window.setInlineXlsLoading('#xlsInlineSpinnerGk', true);
+      Promise.resolve().then(()=>handleFiles(files)).finally(()=>window.setInlineXlsLoading('#xlsInlineSpinnerGk', false));
     });
   }
   if (elInput){
     elInput.addEventListener("change", () => {
       const files = elInput.files;
       if (!files || !files.length){ toast('warning','Dosya','Herhangi bir dosya seçilmedi.'); return; }
-      window.setInlineXlsLoading('#xlsInlineSpinnerIdd', true);
-      Promise.resolve().then(()=>handleFiles(files)).finally(()=>window.setInlineXlsLoading('#xlsInlineSpinnerIdd', false));
+      window.setInlineXlsLoading('#xlsInlineSpinnerGk', true);
+      Promise.resolve().then(()=>handleFiles(files)).finally(()=>window.setInlineXlsLoading('#xlsInlineSpinnerGk', false));
     });
   }
   
-  // Arama input event listener - event delegation kullan
-  document.addEventListener("input", (e) => {
-    if (e.target && e.target.id === "searchInput"){
+  // Arama input event listener
+  const searchInput = $("#searchInput");
+  if (searchInput){
+    searchInput.addEventListener("input", (e) => {
       state.searchTerm = e.target.value.trim();
       state.currentPage = 1;
       renderCombinedPreview();
-    }
-  });
+    });
+  }
 })();

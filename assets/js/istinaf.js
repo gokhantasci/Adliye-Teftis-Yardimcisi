@@ -50,6 +50,19 @@
         });
     }
 
+    // --- Yardım butonu: yükleme kuralları
+    const helpBtn = document.getElementById('istinafHelpBtn');
+    if (helpBtn) {
+        helpBtn.addEventListener('click', () => {
+            toastWithIcon(
+                'info',
+                'Yükleme Bilgisi',
+                'Excel dosyası .xls/.xlsx olmalıdır. Gerekli sayfa adı: <b>czmIstinafDefteriRaporu</b>. Birden fazla dosyayı seçebilirsiniz. Yükledikten sonra özet ve rapor araçları aktifleşir.',
+                7000
+            );
+        });
+    }
+
     function isExcelFile(f) {
         if (!f || !f.name) return false;
         const n = f.name.toLowerCase();
@@ -906,14 +919,14 @@
         </tr></thead><tbody></tbody>
       </table>
     </div>
-    <div class="modal-foot" style="display:flex;justify-content:space-between;align-items:center;">
-      <div class="pager">
-        <button id="ozet-page-prev" class="btn btn--sm">◀ Önceki</button>
-        <span id="ozet-page-info" class="muted" style="margin:0 .5rem;"></span>
-        <button id="ozet-page-next" class="btn btn--sm">Sonraki ▶</button>
-      </div>
-      <button id="ozet-close-foot" class="btn btn--sm">Kapat</button>
-    </div>`;
+        <div class="modal-foot d-flex justify-content-between align-items-center">
+            <div class="pager">
+                <div><button id="ozet-page-prev" class="btn ghost">◀ Önceki</button></div>
+                <div><span id="ozet-page-info" class="muted" style="margin:0 .5rem;"></span></div>
+                <div><button id="ozet-page-next" class="btn ghost">Sonraki ▶</button></div>
+            </div>
+            <button id="ozet-close-foot" class="btn btn--sm">Kapat</button>
+        </div>`;
     document.body.appendChild(modal);
 
     // Modal scoped elemanlar (ID çakışması önlendi)
@@ -1127,7 +1140,7 @@
 		  <label for="endDate"><b>Son tarih</b></label>
 		  <input id="endDate" type="date" value="${maxVal}">
 		  <button id="dateFilterBtn" type="button" class="btn">Filtrele</button>
-		  <button id="dateResetBtn" type="button" class="btn ghost">Tümünü Göster</button>
+          <button id="dateResetBtn" type="button" class="btn">Tümünü Göster</button>
 		</div>
 	  `;
         dz.insertAdjacentElement("afterend", wrap);
@@ -1341,10 +1354,8 @@
 		renderNotSentTablo(ozetData);
 
         // Toast
-        const body = `
-      <div><b>${totalRowsRead}</b> satır okundu; <b>${skippedEmpty}</b> boş atlandı; <b>${dupRemoved}</b> mükerrer atlandı.</div>
-      <div>Kalan kayıt: <b>${deduped.length}</b>. <i>📊 Özet Tabloyu Aç</i> ile tabloyu görüntüleyebilirsiniz.</div>`;
-        toastWithIcon("success", "Rapor Hazır", body, 9000);
+                const bodyTxt = `<span class=\"material-symbols-rounded\" style=\"vertical-align:middle;font-size:20px;\">task_alt</span> ${totalRowsRead} satır okundu; ${skippedEmpty} boş; ${dupRemoved} mükerrer temizlendi. Kalan: ${deduped.length}. Özet tabloyu açabilirsiniz.`;
+                toastWithIcon("success", "Rapor Hazır", bodyTxt, 7500);
 
     }
 

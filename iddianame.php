@@ -70,6 +70,11 @@
             Örnek: "Toplam: 150 kayıt | Uygun: 120 | Sorunlu: 30"
           -->
           <div class="title-actions muted" id="combinedStats"></div>
+          
+          <!-- Arama input -->
+          <div class="title-actions">
+            <input type="text" id="searchInput" placeholder="Ara..." style="padding:6px 12px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-size:14px;width:200px;">
+          </div>
         </div>
         
         <!-- Panel içeriği - Tablo alanı -->
@@ -87,7 +92,7 @@
       
       <!-- ========== BİLGİ KARTI ========== -->
       <section class="card" style="margin-bottom:12px">
-        <div class="card-head" style="color:var(--muted)">
+  <div class="card-header" style="color:var(--muted)">
           <span class="material-symbols-rounded">info</span>
           <strong>Bilgi</strong>
         </div>
@@ -102,7 +107,7 @@
       <!-- ========== EXCEL YÜKLEME KARTI ========== -->
       <section class="card card-upload" id="udfUploadCard">
         <!-- Kart başlığı -->
-        <div class="card-head">
+  <div class="card-header">
           <span class="material-symbols-rounded">upload_file</span>
           <strong>XLS Yükleme</strong>
         </div>
@@ -118,6 +123,10 @@
             <span class="material-symbols-rounded">drive_folder_upload</span>
             <div>XLS/XLSX dosyalarını buraya sürükleyip bırakın</div>
             <small class="muted">veya tıklayıp seçin</small>
+            <div class="xls-loading-inline" id="xlsInlineSpinnerIdd" aria-hidden="true" style="margin-top:8px">
+              <div class="spinner-icon"></div>
+              <span class="muted" style="font-size:12px">İşleniyor…</span>
+            </div>
           </div>
           
           <!-- 

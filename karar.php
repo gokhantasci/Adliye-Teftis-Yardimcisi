@@ -6,9 +6,15 @@
   include __DIR__."/partials/navbar.php";
   include __DIR__."/partials/sidebar.php";
 ?>
-<div class="container">
-    <div class="ustsol">
-        <section class="cards cards--3">
+<main class="content">
+<!-- Sayfa başlığı ve açıklama -->
+  <header class="page-header">
+    <h1>Karar Defteri Kontrolü</h1>
+    <p class="muted">Yüklediğiniz tabloyu işler ve dosya bazlı karar sayılarını hazırlar.</p>
+  </header>
+<div class="container two-col-8-4">
+	<div class="col-left">
+  <section class="cards cards--4">
             <div class="card kpi">
                 <div class="kpi-head"> <span class="kpi-title">Toplam Kayıt</span> <span class="material-symbols-rounded kpi-icon">work</span> </div>
                 <div class="kpi-value" id="kpiTotal">0</div>
@@ -30,18 +36,35 @@
                 <div class="kpi-sub muted">28/10/2025 tarihinden bugüne</div>
             </div>
         </section>
-        <div id="testDataAlert" class="alert alert-warning" role="alert"> <span class="material-symbols-rounded alert-icon">warning</span>
-            <div class="alert-body">
-                <div class="alert-title">Dikkat</div> Ekranda görmekte olduğunuz veriler, test verilerinden ibaret olup, UYAP > Raporlar > Defterler > Defter Sorgu > Karar Defterini Excel formatında yüklediğinizde karar mahiyetleriniz tespit edilebilecektir.
-            </div> <button type="button" class="btn-close" aria-label="Kapat" onclick="dismissTestAlert()">×</button>
-        </div>
-        <section class="card card-upload">
-            <h2 id="pasteTitle" class="card-head"> <span style="flex:1"></span> <label for="excelInput" class="btn"> <span class="material-symbols-rounded">file_upload</span> Excel Yükle </label> <input type="file" id="excelInput" accept=".xls,.xlsx" class="sr-only" multiple="" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;"> <button class="btn" id="run"> <span class="material-symbols-rounded">calculate</span> Hesapla </button> </h2>
-            <div class="row" style="margin-top:10px"></div>
-        </section>
+        
     </div>
-    <div class="ustsag">
-        <details class="settings" open="">
+	<div class="col-right">
+			<!-- Reminder alert placeholder -->
+			<div id="kararReminderHost"></div>
+			<!-- Upload panel moved here (top of right column) with dropzone styling -->
+			<section class="panel" id="kararUploadCard">
+					<div class="panel-head">
+						<div style="display:flex;align-items:center;gap:8px;">
+							<span class="material-symbols-rounded">upload</span>
+							<strong>Excel Yükle</strong>
+						</div>
+						<div class="title-actions ta-compact" style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+							<button class="btn" id="run" type="button" style="display:inline-flex;align-items:center;gap:6px;"><span class="material-symbols-rounded">calculate</span><span>Hesapla</span></button>
+						</div>
+					</div>
+					<div class="panel-body">
+						<form onsubmit="return false;">
+							<div id="dropZone" class="dropzone" tabindex="0" aria-label="Excel yükleme alanı">
+								<p>Dosyayı buraya sürükleyip bırakın</p>
+								<p class="muted">veya</p>
+								<label for="excelInput" class="btn"><span class="material-symbols-rounded">file_upload</span> Excel Seç</label>
+								<input type="file" id="excelInput" accept=".xls,.xlsx,.csv" hidden multiple>
+								<small class="muted">İzin verilen türler: <b>.xls</b>, <b>.xlsx</b>, <b>.csv</b></small>
+							</div>
+						</form>
+					</div>
+				</section>
+        <details class="settings" open="" style="margin-top:12px;">
             <summary><span class="material-symbols-rounded">settings</span>Ayarlar</summary>
             <div class="content">
 			  <div class="row">
@@ -100,11 +123,23 @@
 
         </details>
     </div>
-    <div class="altsol">       
-    </div>
-    <div class="altsag">
-    </div>
+  <!-- Alt bloklar artık iki kolon düzenine taşındı; gerekirse aşağı eklenebilir -->
 </div>
+</main>
+<script>
+// Inject reminder alert at page load
+document.addEventListener('DOMContentLoaded', function() {
+  var host = document.getElementById('kararReminderHost');
+  if (host && window.showAlert) {
+    window.showAlert(host, {
+      type: 'info',
+      title: 'Dikkat',
+      message: 'Bu sayfayı kullanabilmek için UYAP > Raporlar > Defterler > Defter Sorgu > Karar Defterini Excel formatında ilgili tarihleri kapsayacak şekilde indirip, tümünü indirdikten sonra toplu olarak aşağıya yükleyebilirsiniz',
+      dismissible: true
+    });
+  }
+});
+</script>
 <script src="/assets/js/xlsx-loader.js"></script>
 <script defer src="/assets/js/modal-click.js"></script>
 <script defer src="/assets/js/karar-excel-kpis.js?v=1"></script>

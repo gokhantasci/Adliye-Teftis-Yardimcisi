@@ -405,14 +405,10 @@ function renderNoJudgeAlert_afterUpload(missingCount){
   function updateKPIs(total,savciCount,hakimCount){ text($('#kpiTotal'),total); text($('#kpiSavci'),savciCount); text($('#kpiHakim'),hakimCount); }
 
   function buildResultCard(total,savciCount,hakimCount,info){
-    var host=document.querySelector('.altsol')||document.querySelector('#altsol')||document.querySelector('[class*="altsol"]'); if(!host) return;
-    var card=document.getElementById('result-card'); if(!card){ card=document.createElement('section'); card.className='card'; card.id='result-card'; host.appendChild(card); }
-    var dt=new Date().toLocaleString('tr-TR');
-    card.innerHTML='<div class="card-head" style="display:flex;align-items:center;gap:8px;"><span class="material-symbols-rounded">analytics</span><h2 style="margin:0">Rapor Özeti</h2></div>'+
-                   '<div class="card-body"><div class="muted" style="margin-bottom:8px;">Tarih: <b>'+dt+'</b></div>'+
-                   '<ul class="list" style="margin:0;padding-left:16px;line-height:1.6;"><li>Okunan satır: <b>'+total+
-                   '</b></li><li>Eşsiz hakim sayısı: <b>'+hakimCount+'</b></li><li>Eşsiz savcı sayısı: <b>'+savciCount+
-                   '</b></li></ul>'+(info?'<p class="muted" style="margin-top:8px">'+info+'</p>':'')+'</div>';
+    // Karar sayfası yeni düzen: two-col-8-4 -> sol kolon .col-left
+    var host=document.querySelector('.col-left')||document.querySelector('.altsol')||document.querySelector('#altsol')||document.querySelector('[class*="altsol"]'); if(!host) return;
+    var card=document.getElementById('result-card'); if(!card){ card=document.createElement('section'); card.className='panel'; card.id='result-card'; host.appendChild(card); }
+    card.innerHTML='<div class="panel-head" style="display:flex;align-items:center;gap:8px;"><span class="material-symbols-rounded">analytics</span><strong>Rapor Özeti</strong></div>';
   }
 
   function readAsArrayBuffer(file){
@@ -471,6 +467,22 @@ function renderNoJudgeAlert_afterUpload(missingCount){
     }
 
     updateKPIs(used.length,savciCount,hakimCount);
+    
+    // Update kpiIslem counter from API
+    fetch('https://sayac.657.com.tr/arttirkarar')
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (data && typeof data.adet !== 'undefined') {
+          var adetRaw = data.adet * 1;
+          var sayfasayac = nFormatter(adetRaw, 2);
+          var kpiEl = document.getElementById('kpiIslem');
+          if (kpiEl) kpiEl.innerHTML = sayfasayac;
+        }
+      })
+      .catch(function(err) {
+        console.log('Sayaç güncellenemedi:', err);
+      });
+    
     window.__matrixSource={used:used, IDX:IDX};
     buildResultCard(used.length,savciCount,hakimCount,'Seçilen dosya sayısı: '+filesCount+'. (Toplam, B+C+E dolu satırlardan.)');
 
@@ -541,6 +553,36 @@ function renderNoJudgeAlert_afterUpload(missingCount){
   function wire(){
     var input=ensureInputSetup(); if(input) input.addEventListener('change',e=>handleFiles(e.target.files));
     var runBtn=$('#run'); if(runBtn) runBtn.addEventListener('click',recomputeFromSaved);
+    
+    // Prevent browser from opening dropped files
+    var dropZone = $('#dropZone');
+    if (dropZone) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+      
+      ['dragenter', 'dragover'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function() {
+          dropZone.classList.add('drag-over');
+        }, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function() {
+          dropZone.classList.remove('drag-over');
+        }, false);
+      });
+      
+      dropZone.addEventListener('drop', function(e) {
+        var files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          handleFiles(files);
+        }
+      }, false);
+    }
   }
 
   // === Rapor grid’i + filtre (tarih dahil, dd/mm/yyyy toast) ===
@@ -641,11 +683,11 @@ function renderNoJudgeAlert_afterUpload(missingCount){
       var grid=built.grid, outCols=built.columns, EMPTY=built.EMPTY_KEY;
 
       var card=document.getElementById("result-card"); if(!card) return;
-      var body=document.createElement("div"); body.className="card-body";
+      var body=document.createElement("div"); body.className="panel-body";
 
       // başlık ve araçlar
       var h='';
-      h+='<div class="report-head"><h2>Rapor</h2><div class="title-actions">';
+      h+='<div class="report-head"><div class="title-actions">';
       h+='<input id="searchSicil" type="text" placeholder="Sicil ara (örn: 139329)" style="width:200px">';
       h+='<button class="btn ghost" id="filterBtn">Filtrele</button>';
       h+='<button class="btn ghost" id="clearFilterBtn">Temizle</button>';
@@ -659,7 +701,8 @@ function renderNoJudgeAlert_afterUpload(missingCount){
       h+='<label for="startDate"><b>İlk tarih</b></label><input id="startDate" type="date" value="'+ (prevSD || fmtYMD(initialMin) || '') +'">';
       h+='<label for="endDate"><b>Son tarih</b></label><input id="endDate" type="date" value="'+ (prevED || fmtYMD(initialMax) || '') +'">';
       h+='<button id="dateFilterBtn" type="button" class="btn">Filtrele</button>';
-      h+='<button id="dateResetBtn" type="button" class="btn ghost">Tümünü Göster</button>';
+  // Removed ghost style per design system – use solid btn
+  h+='<button id="dateResetBtn" type="button" class="btn">Tümünü Göster</button>';
       h+='</div>';
 
       // tablo (scroll/drag destekli)
@@ -690,7 +733,7 @@ function renderNoJudgeAlert_afterUpload(missingCount){
       var edEl = document.getElementById('endDate');   if (prevED && edEl) edEl.value = prevED;
 
       if (window.enableTableWrapDrag) window.enableTableWrapDrag();
-      var old=card.querySelector('.card-body'); if(old) old.replaceWith(body); else card.appendChild(body);
+      var old=card.querySelector('.panel-body'); if(old) old.replaceWith(body); else card.appendChild(body);
 
       // buton davranışları + Ek Özet’i filtreye göre güncelle
       var fBtn=$('#filterBtn'), clrBtn=$('#clearFilterBtn'), dBtn=$('#dateFilterBtn'), dReset=$('#dateResetBtn'), saveBtn=$('#saveReportExcel');
@@ -874,4 +917,4 @@ function initSayacAndExample(){
     loadExampleExcelAndRender(0);
   });
 }
-initSayacAndExample();
+// initSayacAndExample(); // Removed: no longer auto-loading ornek.xls on page load

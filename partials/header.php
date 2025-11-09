@@ -67,6 +67,7 @@
   -->
   <script src="/assets/js/utils.js?v=1"></script>
   <script defer src="/assets/js/app.js?v=9"></script>
+  <script defer src="/assets/js/footer-slider.js?v=1"></script>
   <script src="/assets/js/vendor/xlsx.min.js"></script>
   <script defer src="/assets/js/open-modal-bridge.js?v=1"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -74,3 +75,40 @@
 <body>
 <!-- Ana uygulama kapsayıcısı: Grid layout ile navbar, sidebar, content düzeni -->
 <div id="app" class="layout">
+
+<!-- XLS Loading Overlay (shown while parsing Excel) -->
+<div id="xlsLoadingOverlay">
+  <div class="box">
+    <div class="spinner-icon"></div>
+    <h3>Veriler hazırlanıyor…</h3>
+    <p>Lütfen bekleyiniz, Excel işleniyor.</p>
+  </div>
+  <div class="sr-only" aria-live="polite">Veriler hazırlanıyor, lütfen bekleyiniz.</div>
+  <script>
+    // tiny inline controller to avoid race conditions before page JS loads
+      (function(){
+        let visibleSince = 0; const MIN_MS = 350; // minimum görünürlük süresi
+        function show(){
+          const el = document.getElementById('xlsLoadingOverlay'); if(!el) return;
+          if(!el.classList.contains('active')){ el.classList.add('active'); visibleSince = performance.now(); }
+        }
+        function hide(){
+          const el = document.getElementById('xlsLoadingOverlay'); if(!el) return;
+          const elapsed = performance.now() - visibleSince;
+          if (elapsed < MIN_MS){
+            setTimeout(()=>{ el.classList.remove('active'); }, MIN_MS - elapsed);
+          } else {
+            el.classList.remove('active');
+          }
+        }
+        window.XlsSpinner = { show, hide };
+      })();
+      // inline helper to activate an inline spinner element
+      window.setInlineXlsLoading = function(container, active){
+        try {
+          if(!container) return; const el = (typeof container === 'string') ? document.querySelector(container) : container;
+          if(!el) return; el.classList.toggle('active', !!active);
+        } catch(e) { /* noop */ }
+      };
+  </script>
+</div>

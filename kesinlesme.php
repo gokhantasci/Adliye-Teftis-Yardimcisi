@@ -8,60 +8,72 @@
 <main class="content">
   <div class="page-header">
     <h1>Kesinleşme Hesapla</h1>
+    <p class="muted">Girilen tarihlere göre mevzuata uygun hesaplama yapılır.</p>
   </div>
 
-  <div class="container"><!-- 4 bölgeli grid: ustsol, ustsag, altsol, altsag -->
-    <!-- Üst Sol: Form -->
-    <section class="ustsol" style="grid-area: ustsol;">
-      <div class="card">
-        <div class="card-head">
-          <h2 class="card-title">Tebliğ ve Süre</h2>
-          <div class="title-actions">
-            <button id="btnCalc" class="btn btn-primary">Hesapla</button>
-            <button id="btnClear" class="btn">Temizle</button>
+  <div class="container two-col-9-3"><!-- Sol 9/12, Sağ 3/12 -->
+    <div class="col-left">
+      <!-- Form -->
+      <section class="panel" id="kesFormPanel">
+        <div class="panel-head">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-rounded">schedule</span>
+            <strong>Tebliğ ve Süre</strong>
+          </div>
+          <div class="title-actions" style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+            <button id="btnCalc" class="btn btn-primary" type="button" style="display:inline-flex;align-items:center;gap:4px;">
+              <span class="material-symbols-rounded">calculate</span><span>Hesapla</span>
+            </button>
+            <button id="btnClear" class="btn" type="button">Temizle</button>
           </div>
         </div>
-        <div class="card-body" id="formMount"><!-- JS doldurur --></div>
-      </div>
-    </section>
+        <div class="panel-body" id="formMount"><!-- JS doldurur --></div>
+      </section>
 
-    <!-- Üst Sağ: Kesinleşme Tarihi -->
-    <section class="ustsag" style="grid-area: ustsag;">
-      <div class="card">
-        <div class="card-head">
-          <h2 class="card-title">Kesinleşme Tarihi</h2>
+      <!-- Tatiller -->
+      <section class="panel" id="kesTatillerPanel" style="margin-top:16px;">
+        <div class="panel-head">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-rounded">event</span>
+            <strong>Tatil Günleri</strong>
+          </div>
+          <div class="title-actions" style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+            <span id="holidayInfo" class="muted"></span>
+          </div>
         </div>
-        <div class="card-body">
+        <div class="panel-body" id="holidayMount"><!-- JS doldurur --></div>
+      </section>
+
+    </div>
+    <div class="col-right">
+      <!-- Kesinleşme Tarihi -->
+      <section class="panel" id="kesResultPanel">
+        <div class="panel-head">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-rounded">task_alt</span>
+            <strong>Kesinleşme Tarihi</strong>
+          </div>
+        </div>
+        <div class="panel-body">
           <div id="resultBox" class="kpi">
             <div class="kpi-value muted">—</div>
             <div class="kpi-label">Hesap sonrası burada görünecek</div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Alt Sol: Tatiller -->
-    <section class="altsol" style="grid-area: altsol;">
-      <div class="card">
-        <div class="card-head">
-          <h2 class="card-title">Tatil Günleri</h2>
-          <div class="title-actions"><span id="holidayInfo" class="muted"></span></div>
+      </section>
+      <!-- Açıklamalar (sağ sütun 3/12) -->
+      <section class="panel" id="kesAciklamaPanel" style="margin-top:16px;">
+        <div class="panel-head">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-rounded">help</span>
+            <strong>Açıklamalar</strong>
+          </div>
         </div>
-        <div class="card-body" id="holidayMount"><!-- JS doldurur --></div>
-      </div>
-    </section>
-
-    <!-- Alt Sağ: Açıklamalar -->
-    <section class="altsag" style="grid-area: altsag;">
-      <div class="card">
-        <div class="card-head">
-          <h2 class="card-title">Açıklamalar</h2>
-        </div>
-        <div class="card-body">
+        <div class="panel-body">
           <ul id="explainList" class="list"></ul>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </main>
 <?php include __DIR__."/partials/footer.php"; ?>

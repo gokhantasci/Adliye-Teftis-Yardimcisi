@@ -10,9 +10,10 @@
     <h1>Yargılama Gideri Hesaplama</h1>
   </div>
 
-  <div class="container">
+  <div class="container two-col-9-3">
+    <div class="col-left">
     <!-- Üst Sol: Tebligatlar + E-Tebligatlar (JS buraya basar) -->
-    <section class="ustsol" style="grid-area: ustsol;">
+    <section class="ustsol">
 	<!-- Bilgi Kartı -->
 		<div class="alert alert-info" id="uploadInfoCard">
 		  <span class="material-symbols-rounded alert-icon">info</span>
@@ -34,7 +35,7 @@
     </section>
 
     <!-- Alt Sol: Kontroller -->
-    <section class="altsol" style="grid-area: altsol;">
+    <section class="altsol">
       <div class="card">
         <div class="card-body">
           <div class="form-grid">
@@ -77,13 +78,15 @@
         </div>
       </div>
     </section>
+    </div>
 
     <!-- Üst Sağ: İşlemler + KPI/Döküm -->
-	<section class="ustsag" style="grid-area: ustsag;">	
+	<div class="col-right">
+	<section class="ustsag">	
 
 		<!-- Dosya Yükleme Kartı -->
 		<section class="card card-tebligat" id="tebligatUploadCard">
-		  <div class="card-head">
+      <div class="card-header">
 			<span class="material-symbols-rounded">upload_file</span>
 			<h3>Tebligat Dosyası Yükle</h3>
 		  </div>
@@ -118,10 +121,10 @@
 	</section>
 
     <!-- Sağ Alt: Sayaç kartı (h2 boyutunda, header yok) -->
-    <section class="altsag" style="grid-area: altsag;">
+    <section class="altsag">
 	<!-- KPI + Döküm -->
 		<div class="card">
-		  <div class="card-head"><h2 style="margin:0;">Özet</h2></div>
+      <div class="card-header"><h2 style="margin:0;">Özet</h2></div>
 		  <div class="card-body">
 			<div class="kpis" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
 			  <div class="kpi"><div class="muted">Tebligat Toplam</div><div id="kpiTeb" style="font-size:20px;font-weight:700">—</div></div>
@@ -145,6 +148,7 @@
         </div>
       </div>
     </section>
+    </div>
   </div>
 </main>
 <?php include __DIR__."/partials/footer.php"; ?>

@@ -45,10 +45,49 @@
       <span class="label">İstinaf Defteri</span>
     </a>
     
+    <!-- ========== DENETİM CETVELLERİ GRUBU ========== -->
+    <h4 class="menu-group-title">Denetim Cetvelleri</h4>
+
     <!-- İddianame Değerlendirme: Zaman kontrolü ve analiz -->
     <a class="menu-item <?= ($active ?? '')==='iddianame'?'active':'' ?>" href="/iddianame.php">
-      <span class="material-symbols-rounded">align_space_between</span>
+      <span class="material-symbols-rounded">counter_1</span>
       <span class="label">İddianame Değ.</span>
+    </a>
+
+    <!-- Tensip: Zaman kontrolü ve analiz -->
+    <a class="menu-item <?= ($active ?? '')==='tensip'?'active':'' ?>" href="/tensip.php">
+      <span class="material-symbols-rounded">counter_2</span>
+      <span class="label">Tensip</span>
+    </a>
+
+    <!-- Duruşma Kaçağı kontrolü ve analiz -->
+    <a class="menu-item <?= ($active ?? '')==='durusmakacagi'?'active':'' ?>" href="/durusmakacagi.php">
+      <span class="material-symbols-rounded">counter_3</span>
+      <span class="label">Duruşma Kaçağı</span>
+    </a>
+
+    <!-- BYU: Zaman kontrolü ve analiz -->
+    <a class="menu-item <?= ($active ?? '')==='byu'?'active':'' ?>" href="/byu.php">
+      <span class="material-symbols-rounded">counter_4</span>
+      <span class="label">Basit Yargılama</span>
+    </a>
+
+    <!-- Gerekçeli Karar: Zaman kontrolü ve analiz -->
+    <a class="menu-item <?= ($active ?? '')==='gerekcelikarar'?'active':'' ?>" href="/gerekcelikarar.php">
+      <span class="material-symbols-rounded">counter_5</span>
+      <span class="label">Gerekçeli Karar</span>
+    </a>
+
+    <!-- Kanun Yolu kontrolü ve analiz -->
+    <a class="menu-item <?= ($active ?? '')==='kanun_yolu'?'active':'' ?>" href="/kanunyolu.php">
+      <span class="material-symbols-rounded">counter_6</span>
+      <span class="label">Kanun Yolu</span>
+    </a>
+
+    <!-- Kesinleştirme ve İnfaza Verme: Zaman kontrolü ve analiz -->
+    <a class="menu-item <?= ($active ?? '')==='kesinlestirme'?'active':'' ?>" href="/kesinlestirme.php">
+      <span class="material-symbols-rounded">counter_7</span>
+      <span class="label">Kesinleştirme/İnfaz</span>
     </a>
 
     <!-- ========== KONTROL MODÜLLER GRUBU ========== -->

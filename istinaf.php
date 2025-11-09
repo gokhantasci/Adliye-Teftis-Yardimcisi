@@ -7,7 +7,8 @@
 ?>
 <main class="content">
   <div class="page-header">
-    <h1>İstinaf Defteri</h1>    
+    <h1>İstinaf Defteri</h1>  
+	<p class="muted">Yüklediğiniz istinaf defterini işler ve teftişe esas olabilecek değerler gösterir.</p>  
   </div>
 
   <div class="container">
@@ -15,38 +16,32 @@
     
 
     <!-- Üst Sağ -->
-    <section id="cardUstSag" class="ustsag" style="grid-area: ustsag;">
-      <div class="card">
-        <div class="card-head">
-          <h2>Dosya Yükle</h2>
-        </div>
-        <div class="card-body">
-          <!-- Sürükle-bırak + çoklu seçim, yalnızca .xls / .xlsx -->
-          <form id="uploadBox" enctype="multipart/form-data" onsubmit="return false;">
-            <div id="dropZone"
-                 class="dropzone"
-                 tabindex="0"
-                 aria-label="Dosya yükleme alanı"
-                 style="border:2px dashed var(--border, #3a3a3a); border-radius:12px; padding:1.25rem; text-align:center;">
-              <p style="margin:.25rem 0;">Dosyaları buraya sürükleyip bırakın</p>
-              <p class="muted" style="margin:.25rem 0;">veya</p>
-              <input id="fileInput"
-                     name="files[]"
-                     type="file"
-                     accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                     multiple
-                     style="display:block; margin:.25rem auto;" />
-              <small class="muted">İzin verilen türler: <b>.xls</b>, <b>.xlsx</b> (çoklu seçim desteklenir)</small>
-            </div>
-
-            <!-- (İsteğe bağlı) seçilen dosya adlarını göstermek için yer tutucu -->
-            <div id="selectedFilesHint" class="muted" style="margin-top:.5rem;">
-              <!-- JS ekleyince burada listeleyebiliriz -->
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
+		<section id="cardUstSag" class="ustsag">
+			<!-- Hatırlatma alert'i için yer tutucu -->
+			<div id="istinafReminderHost"></div>
+			<div class="card card-upload" id="istinafUploadCard">
+				<div class="card-head">
+					<span class="material-symbols-rounded">upload</span>
+					<strong>Dosya Yükle</strong>
+					<div class="title-actions ta-compact" style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+						<button id="istinafHelpBtn" type="button" class="btn ghost" title="Yardım" aria-label="Yükleme kuralları">
+							<span class="material-symbols-rounded">help</span>
+						</button>
+					</div>
+				</div>
+				<div class="card-body">
+					<form id="uploadBox" enctype="multipart/form-data" onsubmit="return false;" aria-describedby="istinafUploadDesc">
+						<div id="dropZone" class="dropzone" tabindex="0" aria-label="Dosya yükleme alanı">
+							<p>Dosyaları buraya sürükleyip bırakın</p>
+							<p class="muted">veya</p>
+							<input id="fileInput" name="files[]" type="file" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple />
+							<small id="istinafUploadDesc" class="muted">İzin verilen türler: <b>.xls</b>, <b>.xlsx</b> · Çoklu seçim desteklenir · Gerekli sayfa: <b>czmIstinafDefteriRaporu</b></small>
+						</div>
+						<div id="selectedFilesHint" class="muted" style="margin-top:.5rem;"></div>
+					</form>
+				</div>
+			</div>
+		</section>
 
     <!-- Alt Sol -->
     <section id="cardAltSol" class="altsol" style="grid-area: ustsol;">
@@ -100,9 +95,9 @@
 		  <tbody></tbody>
 		</table>
 		<div class="pager">
-		  <button id="pagePrev" class="btn btn--sm">◀ Önceki</button>
-		  <span id="pageInfo"></span>
-		  <button id="pageNext" class="btn btn--sm">Sonraki ▶</button>
+		  <div><button id="pagePrev" class="btn ghost">◀ Önceki</button></div>
+		  <div class="muted"><span id="pageInfo"></span></div>
+		  <div><button id="pageNext" class="btn ghost">Sonraki ▶</button></div>
 		</div>
 	  </div>
 	</div>
@@ -141,7 +136,7 @@
 		</section>
 	  </div>
 
-	  <div class="modal-foot" style="display:flex;justify-content:flex-end;">
+	  <div class="modal-foot d-flex justify-content-end align-items-center gap-2">
 		<button id="btnCloseKanunYoluFoot" class="btn btn--sm">Kapat</button>
 	  </div>
 	</div>
@@ -154,3 +149,28 @@
 <!-- Şu an JS boş; ileride bağlarız -->
 <script src="/assets/js/xlsx-loader.js"></script>
 <script src="/assets/js/istinaf.js?v=1"></script>
+<script>
+	// Sayfa yüklenince üst sağ karta hatırlatma alert'i ekle
+	(function(){
+		function injectReminder(){
+			try{
+				var host = document.getElementById('istinafReminderHost') || document.querySelector('#cardUstSag');
+				if (!host || typeof window.showAlert !== 'function') return;
+				// Eğer daha önce eklendiyse tekrar eklemeyelim
+				if (document.getElementById('istinafReminderAlert')) return;
+				var wrap = document.createElement('div');
+				wrap.id = 'istinafReminderAlert';
+				// İlk elemana ekle (üstte görünsün)
+				if (host.firstChild) host.insertBefore(wrap, host.firstChild); else host.appendChild(wrap);
+				window.showAlert(wrap, {
+					type: 'info',
+					title: 'Hatırlatma',
+					message: 'Bu sayfayı kullanabilmek için UYAP > Raporlar > Defterler > İstinaf Defteri\'ni teftiş aralığı içerisinden sorgulayabiliriz, bu ekranda 1-250 olarak sorgulama yapabiliyoruz, tümünü indirdikten sonra toplu olarak aşağıya yükleyebilirsiniz',
+					icon: 'info',
+					dismissible: true
+				});
+			} catch(e){ /* noop */ }
+		}
+		if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectReminder); else injectReminder();
+	})();
+</script>

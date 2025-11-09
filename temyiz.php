@@ -15,38 +15,23 @@
     
 
     <!-- Üst Sağ -->
-    <section id="cardUstSag" class="ustsag" style="grid-area: ustsag;">
-      <div class="card">
-        <div class="card-head">
-          <h2>Dosya Yükle</h2>
-        </div>
-        <div class="card-body">
-          <!-- Sürükle-bırak + çoklu seçim, yalnızca .xls / .xlsx -->
-          <form id="uploadBox" enctype="multipart/form-data" onsubmit="return false;">
-            <div id="dropZone"
-                 class="dropzone"
-                 tabindex="0"
-                 aria-label="Dosya yükleme alanı"
-                 style="border:2px dashed var(--border, #3a3a3a); border-radius:12px; padding:1.25rem; text-align:center;">
-              <p style="margin:.25rem 0;">Dosyaları buraya sürükleyip bırakın</p>
-              <p class="muted" style="margin:.25rem 0;">veya</p>
-              <input id="fileInput"
-                     name="files[]"
-                     type="file"
-                     accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                     multiple
-                     style="display:block; margin:.25rem auto;" />
-              <small class="muted">İzin verilen türler: <b>.xls</b>, <b>.xlsx</b> (çoklu seçim desteklenir)</small>
-            </div>
-
-            <!-- (İsteğe bağlı) seçilen dosya adlarını göstermek için yer tutucu -->
-            <div id="selectedFilesHint" class="muted" style="margin-top:.5rem;">
-              <!-- JS ekleyince burada listeleyebiliriz -->
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
+		<section id="cardUstSag" class="ustsag" style="grid-area: ustsag;">
+			<div class="card">
+				<div class="card-header"><h2>Dosya Yükle</h2></div>
+				<div class="card-body">
+					<!-- Sürükle-bırak + çoklu seçim, yalnızca .xls / .xlsx -->
+					<form id="uploadBox" enctype="multipart/form-data" onsubmit="return false;">
+						<div id="dropZone" class="dropzone" tabindex="0" aria-label="Dosya yükleme alanı">
+							<p>Dosyaları buraya sürükleyip bırakın</p>
+							<p class="muted">veya</p>
+							<input id="fileInput" name="files[]" type="file" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple />
+							<small class="muted">İzin verilen türler: <b>.xls</b>, <b>.xlsx</b> (çoklu seçim desteklenir)</small>
+						</div>
+						<div id="selectedFilesHint" class="muted" style="margin-top:.5rem;"></div>
+					</form>
+				</div>
+			</div>
+		</section>
 
     <!-- Alt Sol -->
     <section id="cardAltSol" class="altsol" style="grid-area: ustsol;">

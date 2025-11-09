@@ -287,20 +287,35 @@ function computeKararNo(r){
       let page = 1;
       const pages = Math.ceil(total / pageSize);
 
+      // Find appropriate footer: modal-foot or card-footer/card-foot
+      const modal = table.closest('.cmodal, .modal-card');
+      let footer = modal ? modal.querySelector('.modal-foot') : null;
+      
+      if (!footer) {
+        const card = table.closest('.card');
+        footer = card ? (card.querySelector('.card-footer') || card.querySelector('.card-foot')) : null;
+      }
+
       const pagerId = (table.id || 'table') + '_pager';
-      let pager = table.parentElement.querySelector('#'+pagerId);
+  let pager = footer ? footer.querySelector('#'+pagerId) : table.parentElement.querySelector('#'+pagerId);
+      
       if (!pager){
         pager = document.createElement('div');
         pager.id = pagerId;
-        pager.className = 'pager';
-        pager.style.display='flex';
-        pager.style.justifyContent='space-between';
-        pager.style.alignItems='center';
-        pager.style.marginTop='10px';
-        pager.style.gap='8px';
+  pager.className = 'pager';
+  pager.style.display='flex';
+  pager.style.alignItems='center';
+  pager.style.gap='12px';
+  pager.style.justifyContent='space-between';
         // modal kapanmasın
         pager.addEventListener('click', (ev)=> ev.stopPropagation());
-        table.parentElement.appendChild(pager);
+        
+        if (footer) {
+          footer.appendChild(pager);
+        } else {
+          pager.style.marginTop='10px';
+          table.parentElement.appendChild(pager);
+        }
       }
 
       function render(){
@@ -311,16 +326,15 @@ function computeKararNo(r){
         });
 
         pager.innerHTML = '';
-        const info = document.createElement('div');
-        info.className = 'muted';
-        info.textContent = `Sayfa ${page} / ${pages} — ${total} kayıt`;
-
         const left = document.createElement('div');
+        const center = document.createElement('div');
         const right= document.createElement('div');
+        center.className='muted';
+        center.textContent = `Sayfa ${page} / ${pages} — ${total} kayıt`;
 
         function mkBtn(label, disabled, on){
           const b=document.createElement('button');
-          b.className='btn'+(disabled?' ghost':'');
+          b.className='btn ghost';
           b.type='button';
           b.textContent=label;
           b.disabled=!!disabled;
@@ -329,13 +343,10 @@ function computeKararNo(r){
           return b;
         }
 
-        left.appendChild(mkBtn('« İlk', page===1, ()=>{ page=1; render(); }));
-        left.appendChild(mkBtn('‹ Önceki', page===1, ()=>{ page--; render(); }));
-        right.appendChild(mkBtn('Sonraki ›', page===pages, ()=>{ page++; render(); }));
-        right.appendChild(mkBtn('Son »', page===pages, ()=>{ page=pages; render(); }));
-
+        left.appendChild(mkBtn('Önceki', page===1, ()=>{ page--; render(); }));
+        right.appendChild(mkBtn('Sonraki', page===pages, ()=>{ page++; render(); }));
         pager.appendChild(left);
-        pager.appendChild(info);
+        pager.appendChild(center);
         pager.appendChild(right);
       }
 

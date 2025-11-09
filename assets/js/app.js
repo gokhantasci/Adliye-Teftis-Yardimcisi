@@ -216,6 +216,7 @@
     var body = opts.body || '';
     var autohide = opts.autohide !== false;
     var delay = (typeof opts.delay === 'number') ? opts.delay : 5000;
+    
     var c = document.querySelector('.toast-container');
     if (!c) { c = el('div', {class:'toast-container'}); document.body.appendChild(c); }
     var t = el('div', {class:'toast toast-'+type});
@@ -301,24 +302,20 @@ if (typeof dismissTestAlert !== 'function') {
     pagerEl.setAttribute("aria-label", "Haber sayfalama");
   }
 
-  // -- pager konumu: .news-drop__content SONRASI --
+  // -- pager konumu: newsCard'ın card-footer'ında --
   (function placePager() {
-    var contentEl =
-      document.querySelector("#newsCard .news-drop__content") ||
-      document.querySelector("#newsCard .card-body"); // yedek
-
-    if (contentEl) {
-      // Zaten doğru yerde değilse taşı
-      if (pagerEl.previousElementSibling !== contentEl) {
-        contentEl.insertAdjacentElement("afterend", pagerEl);
-      }
-    } else if (listEl && listEl.parentNode) {
-      // Son çare: liste ebeveyninin sonuna
-      if (pagerEl.parentNode !== listEl.parentNode) {
-        listEl.parentNode.appendChild(pagerEl);
-      }
-    } else if (!pagerEl.parentNode) {
-      document.body.appendChild(pagerEl);
+    const newsCard = document.getElementById("newsCard");
+    if (!newsCard) return;
+    
+    let cardFoot = newsCard.querySelector(".card-footer") || newsCard.querySelector(".card-foot");
+    if (!cardFoot) {
+      cardFoot = document.createElement("div");
+      cardFoot.className = "card-footer";
+      newsCard.appendChild(cardFoot);
+    }
+    
+    if (pagerEl.parentNode !== cardFoot) {
+      cardFoot.appendChild(pagerEl);
     }
   })();
   var itemsCache = [];
@@ -400,41 +397,127 @@ if (typeof dismissTestAlert !== 'function') {
     var start = (page - 1) * PAGE_SIZE;
     var end = start + PAGE_SIZE;
     var slice = items.slice(start, end);
-    listEl.innerHTML = "";
-    for (var i = 0; i < slice.length; i++) {
-      var it = slice[i];
-      var row = document.createElement("div"); row.className = "news-item";
-      var p = document.createElement("p");
-      var dateEl = document.createElement("strong"); dateEl.className = "news-date"; dateEl.textContent = it.tarih;
-      var contentEl = document.createElement("span"); contentEl.innerHTML = " - " + String(it.icerik || "").replace(/\n/g, "<br>");
-      p.appendChild(dateEl); p.appendChild(contentEl); row.appendChild(p); listEl.appendChild(row);
-    }
     pagerEl.innerHTML = "";
     pagerEl.style.display = (totalPages <= 1 ? "none" : "");
     if (totalPages > 1) {
-      var prev = document.createElement("button");
-      prev.type = "button"; prev.className = "btn btn-ghost btn-sm";
-      prev.textContent = "Önceki";
-      prev.disabled = (page === 1);
-      prev.addEventListener("click", function () { renderListPage(itemsCache, currentPage - 1); });
-      pagerEl.appendChild(prev);
-      var info = document.createElement("span");
-      info.className = "pager-info";
-      info.style.margin = "0 .5rem";
-      info.textContent = "Sayfa " + page + "/" + totalPages;
-      pagerEl.appendChild(info);
-      var next = document.createElement("button");
-      next.type = "button"; next.className = "btn btn-ghost btn-sm";
-      next.textContent = "Sonraki";
-      next.disabled = (page === totalPages);
-      next.addEventListener("click", function () { renderListPage(itemsCache, currentPage + 1); });
-      pagerEl.appendChild(next);
+      // unified pager layout: left(prev), center(info), right(next)
+  var left = document.createElement('div');
+  var center = document.createElement('div');
+  var right = document.createElement('div');
+      var prev = document.createElement('button');
+      prev.type='button'; prev.className='btn ghost'; prev.textContent='Önceki'; prev.disabled = (page===1);
+      prev.addEventListener('click', function(){ renderListPage(itemsCache, currentPage - 1); });
+      left.appendChild(prev);
+  var info = document.createElement('div'); info.className='muted'; info.textContent='Sayfa '+page+' / '+totalPages; center.appendChild(info);
+      var next = document.createElement('button');
+      next.type='button'; next.className='btn ghost'; next.textContent='Sonraki'; next.disabled = (page===totalPages);
+      next.addEventListener('click', function(){ renderListPage(itemsCache, currentPage + 1); });
+      right.appendChild(next);
+      // Track interactions for keyboard pager shortcuts
+      [prev, next].forEach(function(btn){
+        ['focus','mouseenter','click'].forEach(function(ev){ btn.addEventListener(ev, function(){ window.__lastPager = pagerEl; }); });
+      });
+  pagerEl.appendChild(left); pagerEl.appendChild(center); pagerEl.appendChild(right);
     }
   }
   function render(items) {
     itemsCache = items || [];
     renderMeta(itemsCache.length);
     renderListPage(itemsCache, 1);
+    // === Footer Slider News Injection ===
+    (function injectFooterNews(){
+      if (window.__footerNewsApplied) return; // tek seferlik
+      const track = document.querySelector('.fs-track');
+      if (!track) return;
+      try {
+        const storedKey = 'footerNews_v1';
+        const existingRaw = localStorage.getItem(storedKey);
+        let existing = [];
+        if (existingRaw){ try{ existing = JSON.parse(existingRaw)||[]; }catch(e){} }
+        const seen = new Set(existing.map(x=> (x.date+'__'+x.text)));
+        const addList = [];
+        itemsCache.forEach(function(it){
+          const dateStr = it.tarih; // varsayılan format korunur
+          const parts = String(it.icerik||'').split(/\n+/).map(p=>p.trim()).filter(Boolean);
+          parts.forEach(function(part){
+            const key = dateStr+'__'+part;
+            if (seen.has(key)) return;
+            seen.add(key);
+            addList.push({ date: dateStr, text: part });
+          });
+        });
+        if (!addList.length) { window.__footerNewsApplied = true; return; }
+        // Birleştir, son eklenen ilk görünsün (slider zaten döner)
+        const merged = existing.concat(addList).slice(-200); // max 200 kayıt tut
+        localStorage.setItem(storedKey, JSON.stringify(merged));
+        // DOM'a ekle
+        addList.forEach(function(row){
+          const div = document.createElement('div');
+          div.className = 'fs-item';
+          // Tarihi başa koy, içerik devamında; uzunluk taşarsa CSS kırpar
+          div.innerHTML = '<span class="muted" style="font-variant-numeric:tabular-nums;">'+escapeHtml(row.date)+'</span> '+escapeHtml(row.text);
+          track.appendChild(div);
+        });
+        window.__footerNewsApplied = true;
+      } catch(e){ console.error('[FooterNews]', e); }
+    })();
+  }
+  // Toast queue & throttle (max 2 concurrent, 500ms interval)
+  (function enhanceToastQueue(){
+    if (window.__toastQueueEnhanced) return;
+    const originalToast = window.toast; // expects opts object
+    const queue = [];
+    let active = 0;          // currently visible count
+    let lastShown = 0;       // timestamp of last shown
+    function showNext(){
+      if (!queue.length) return;
+      if (active >= 2) return; // max 2 concurrent
+      const now = Date.now();
+      const since = now - lastShown;
+      if (since < 500){ // enforce 500ms spacing
+        setTimeout(showNext, 500 - since + 5);
+        return;
+      }
+      const opts = queue.shift();
+      lastShown = Date.now();
+      active++;
+      // Toast logging is handled in utils.js wrapper, no need to log here
+      const el = originalToast(opts);
+      const delay = (typeof opts.delay === 'number') ? opts.delay : 5000;
+      setTimeout(()=>{ active = Math.max(0, active-1); showNext(); }, delay + 60);
+    }
+    function normalizeArgs(args){
+      if (!args.length) return {};
+      if (typeof args[0] === 'object' && !Array.isArray(args[0])) return {...args[0]};
+      const type = args[0];
+      const title = args[1];
+      const body = args[2];
+      const extra = (typeof args[3] === 'object' && args[3]) ? args[3] : {};
+      return { ...extra, type, title, body };
+    }
+    function queuedToast(){
+      const opts = normalizeArgs(arguments);
+      // Log toast event only if global toast logger isn't active yet
+      try {
+        if (!window.__TOAST_LOG_WRAP_ACTIVE) {
+          const toastType = String(opts.type||'info').toLowerCase();
+          const msg = (opts.title||'') + (opts.body? ': '+opts.body:'');
+          if (window.logEvent) window.logEvent(toastType, msg);
+        }
+      } catch(_) { }
+      queue.push(opts);
+      showNext();
+      return { queued:true };
+    }
+    queuedToast.__queueEnhanced = true;
+    window.toast = queuedToast;
+    window.__toastQueueEnhanced = true;
+  })();
+  // Basit HTML kaçış (footer news injection için)
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(ch){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'})[ch] || ch;
+    });
   }
   function msUntilNextHour() {
     var now = new Date();
@@ -465,6 +548,38 @@ if (typeof dismissTestAlert !== 'function') {
   } else {
     ensureData(); scheduleHourly();
   }
+  // Global ArrowLeft/ArrowRight shortcuts for pagers
+  (function bindGlobalPagerShortcuts(){
+    if (window.__globalPagerKeysBound) return; window.__globalPagerKeysBound = true;
+    function isEditable(el){ return el && (el.isContentEditable || /^(input|textarea|select)$/i.test(el.tagName)); }
+    function clickIf(btn){ if (btn && !btn.disabled) btn.click(); }
+    document.addEventListener('keydown', function(e){
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (isEditable(document.activeElement)) return;
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      let pager = window.__lastPager;
+      if (!pager) pager = document.querySelector('.card-footer .pager, .modal-foot .pager, .log-panel-foot .pager');
+      if (!pager){
+        // Try modal foot fallbacks
+        const mf = document.querySelector('.modal-foot');
+        if (mf){
+          const prev = mf.querySelector('#jrListPrev, #ozet-page-prev');
+          const next = mf.querySelector('#jrListNext, #ozet-page-next');
+          if (e.key==='ArrowLeft' && prev){ e.preventDefault(); clickIf(prev); }
+          if (e.key==='ArrowRight' && next){ e.preventDefault(); clickIf(next); }
+        }
+        return;
+      }
+      const first = pager.firstElementChild;
+      const last  = pager.lastElementChild;
+      if (e.key==='ArrowLeft'){ const btn = first && first.querySelector('button'); if (btn){ e.preventDefault(); clickIf(btn); } }
+      if (e.key==='ArrowRight'){ const btn = last && last.querySelector('button');  if (btn){ e.preventDefault(); clickIf(btn); } }
+    });
+    // Delegated tracking for any pager button interaction (focus/click/mouseenter)
+    document.addEventListener('click', function(e){ const b = e.target.closest('.pager button'); if (b){ window.__lastPager = b.closest('.pager'); } });
+    document.addEventListener('focusin', function(e){ const b = e.target.closest('.pager button'); if (b){ window.__lastPager = b.closest('.pager'); } });
+    document.addEventListener('mouseover', function(e){ const b = e.target.closest('.pager button'); if (b){ window.__lastPager = b.closest('.pager'); } });
+  })();
 })();
 (function () {
   if (window.__mailDropInitDone) return;
@@ -704,8 +819,18 @@ if (typeof dismissTestAlert !== 'function') {
       const total = data.length;
       const pages = Math.ceil(total / pageSize);
 
+      // Find appropriate footer: modal-foot or card-footer/card-foot
+      const modal = table.closest('.cmodal, .modal-card');
+      let footer = modal ? modal.querySelector('.modal-foot') : null;
+      
+      if (!footer) {
+        const card = table.closest('.card');
+        footer = card ? (card.querySelector('.card-footer') || card.querySelector('.card-foot')) : null;
+      }
+
       const pagerId = (table.id || 'table').replace(/[^a-z0-9_-]/gi,'') + '_pager';
-      let pager = table.parentElement.querySelector('#'+pagerId);
+      let pager = footer ? footer.querySelector('#'+pagerId) : table.parentElement.querySelector('#'+pagerId);
+      
       if (!pager){
         pager = document.createElement('div');
         pager.id = pagerId;
@@ -713,9 +838,14 @@ if (typeof dismissTestAlert !== 'function') {
         pager.style.display='flex';
         pager.style.justifyContent='space-between';
         pager.style.alignItems='center';
-        pager.style.marginTop='10px';
         pager.style.gap='8px';
-        table.parentElement.appendChild(pager);
+        
+        if (footer) {
+          footer.appendChild(pager);
+        } else {
+          pager.style.marginTop='10px';
+          table.parentElement.appendChild(pager);
+        }
       }
 
       function renderPage(){
@@ -730,7 +860,7 @@ if (typeof dismissTestAlert !== 'function') {
         const right= document.createElement('div');
         function mkBtn(label, disabled, on){
           const b=document.createElement('button');
-          b.className='btn'+(disabled?' ghost':'');
+          b.className='btn ghost';
           b.type='button';
           b.textContent=label;
           b.disabled=!!disabled;
@@ -827,17 +957,32 @@ function __applyPager(tableSelector, pageSize){
     const total = data.length;
     const pages = Math.ceil(total / pageSize);
 
+    // Find appropriate footer: modal-foot or card-footer/card-foot
+    const modal = table.closest('.cmodal, .modal-card');
+    let footer = modal ? modal.querySelector('.modal-foot') : null;
+    
+    if (!footer) {
+      const card = table.closest('.card');
+      footer = card ? (card.querySelector('.card-footer') || card.querySelector('.card-foot')) : null;
+    }
+
     const pagerId = tableSelector.replace(/[^a-z0-9_-]/gi,'') + '_pager';
-    let pager = table.parentElement.querySelector('#'+pagerId);
+    let pager = footer ? footer.querySelector('#'+pagerId) : table.parentElement.querySelector('#'+pagerId);
+    
     if (!pager){
       pager = document.createElement('div');
       pager.id = pagerId;
       pager.style.display='flex';
       pager.style.justifyContent='space-between';
       pager.style.alignItems='center';
-      pager.style.marginTop='10px';
       pager.style.gap='8px';
-      table.parentElement.appendChild(pager);
+      
+      if (footer) {
+        footer.appendChild(pager);
+      } else {
+        pager.style.marginTop='10px';
+        table.parentElement.appendChild(pager);
+      }
     }
 
     function renderPage(){
@@ -906,3 +1051,77 @@ function __applyPager(tableSelector, pageSize){
     }catch(_e){ if (window.toast) window.toast({type:"success", title:"Başarılı", body:"Ayarlar başarıyla kaydedildi."}); }
   });
 })();
+
+  // ========================================
+  // AUTO SPINNER FOR FILE INPUTS
+  // ========================================
+  (function initAutoSpinner() {
+    // Tüm file input'ları dinle
+    document.addEventListener('change', function(e) {
+      const target = e.target;
+    
+      // Sadece file input'ları için çalış
+      if (target.tagName === 'INPUT' && target.type === 'file' && target.files.length > 0) {
+        const file = target.files[0];
+      
+        // Geçerli dosya uzantısı kontrolü
+        const accept = target.getAttribute('accept') || '';
+        const validExtensions = accept.split(',').map(ext => ext.trim().toLowerCase());
+        const fileName = file.name.toLowerCase();
+      
+        // Uzantı kontrolü
+        const isValid = validExtensions.length === 0 || validExtensions.some(ext => {
+          const cleanExt = ext.replace('.', '');
+          return fileName.endsWith('.' + cleanExt);
+        });
+      
+        if (isValid && window.showSpinner) {
+          window.showSpinner('Veriler işleniyor...');
+        
+          // 2 saniye sonra spinner'ı kapat
+          setTimeout(function() {
+            if (window.hideSpinner) {
+              window.hideSpinner();
+            }
+          }, 2000);
+        }
+      }
+    });
+
+    // Dropzone'lar için drop olayını dinle
+    document.addEventListener('drop', function(e) {
+      try {
+        const dt = e.dataTransfer;
+        if (!dt || !dt.files || dt.files.length === 0) return;
+        // Sadece .dropzone veya #dropZone içine bırakıldıysa tetikle
+        const el = e.target instanceof Element ? e.target.closest('.dropzone, #dropZone') : null;
+        if (!el) return;
+        if (window.showSpinner) {
+          window.showSpinner('Veriler işleniyor...');
+          setTimeout(function(){ window.hideSpinner && window.hideSpinner(); }, 2000);
+        }
+      } catch(_) { /* ignore */ }
+    }, true);
+  })();
+
+  // ========================================
+  // Log Panel Interaction
+  // ========================================
+  (function initLogPanel(){
+    const toggle = document.getElementById('logToggle');
+    const panel = document.getElementById('logPanel');
+    const clearBtn = document.getElementById('logClearBtn');
+    if(!toggle || !panel) return;
+    function open(){ panel.hidden = false; logEvent('ui','Log panel açıldı'); }
+    function close(){ panel.hidden = true; logEvent('ui','Log panel kapatıldı'); }
+    toggle.addEventListener('click', ()=>{ panel.hidden ? open(): close(); });
+    clearBtn?.addEventListener('click', ()=>{
+      const body = document.getElementById('logPanelBody');
+      if(body){ body.innerHTML=''; }
+      if(window.__LOG_BUFFER__) window.__LOG_BUFFER__.length = 0;
+      const stats = document.getElementById('logStats'); if(stats) stats.textContent='0 kayıt';
+      // localStorage'dan da temizle
+      try{ localStorage.removeItem('app_logs'); }catch(_){}
+      logEvent('ui','Loglar temizlendi');
+    });
+  })();

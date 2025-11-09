@@ -146,6 +146,10 @@
       if (chosenHint) chosenHint.textContent = files.map(f=>f.name).join(", ");
       toastOK(`${RAW.length.toLocaleString('tr-TR')} kayıt yüklendi.`);
 
+      // JSON başarıyla yüklendi: Çoklu Excel kartını görünür yap
+      const mcard = document.getElementById("multiExcelCard");
+      if (mcard) mcard.style.display = "";
+
       destroyInfoCard();
       ensureSideFilterCard();
       ensureSecondRowCards();
@@ -180,18 +184,24 @@
     const card = document.createElement("section");
     card.className = "card";
     card.id = "jrSideDateCard";
+    card.style.alignSelf = "start";
     card.innerHTML = `
-      <div class="card-header py-2 d-flex align-items-center gap-2">
-        <span class="material-symbols-rounded">tune</span>
-        <strong class="small mb-0">Tarih Filtresi</strong>
+      <div class="card-header d-flex flex-wrap align-items-center gap-2">
+        <strong style="font-size:var(--fs-md);margin:0;" class="me-auto">Tarih Filtresi</strong>
+        <button type="button" class="chip" id="btnClr_acilis" data-key="acilis" data-active="0" hidden>Açılış ✕</button>
+        <button type="button" class="chip" id="btnClr_karar" data-key="karar" data-active="0" hidden>Karar ✕</button>
+        <button type="button" class="chip" id="btnClr_kapanis" data-key="kapanis" data-active="0" hidden>Kapanış ✕</button>
+        <button type="button" class="chip" id="btnClr_all" hidden>Tümü ✕</button>
       </div>
-      <div class="card-body">
+      <div class="card-body" style="padding:14px;">
         ${pairBlock("Açılış", "acilis")}
         ${pairBlock("Karar",  "karar")}
         ${pairBlock("Kapanış","kapanis")}
-        <div class="d-flex justify-content-end gap-2 mt-2">
-          <button class="btn btn-outline-secondary btn-sm" id="btnClearAll">Tüm Filtreleri Temizle</button>
-          <button class="btn btn-primary btn-sm" id="btnApplyDateFilters">Uygula</button>
+      </div>
+      <div class="card-footer">
+        <div class="d-flex gap-2">
+          <button class="btn" id="btnClearAll" style="font-size:var(--fs-sm);">Tümünü Temizle</button>
+          <button class="btn" id="btnApplyDateFilters" style="font-size:var(--fs-sm);">Uygula</button>
         </div>
       </div>
     `;
@@ -209,25 +219,44 @@
           $("#btnApplyDateFilters")?.click();
         }
       });
-      inp.addEventListener("input", debounce(validateAll, 120));
+      inp.addEventListener("input", debounce(()=>{ validateAll(); updateHeaderChips(); }, 120));
     });
 
-    // Tek tek temizle
+    // Tek tek temizle (chip click)
     ["acilis","karar","kapanis"].forEach(key=>{
       card.querySelector(`#btnClr_${key}`)?.addEventListener("click", ()=>{
         $(`#${key}From`).value = "";
         $(`#${key}To`).value   = "";
         setPairState(key, {from:"",to:""});
         validateAll();
+        updateHeaderChips();
         applyFilters();
       });
+    });
+    // Hepsini temizle chip
+    card.querySelector('#btnClr_all')?.addEventListener('click', ()=>{
+      ["acilis","karar","kapanis"].forEach(k=>{ $(`#${k}From`).value=""; $(`#${k}To`).value=""; setPairState(k,{from:"",to:""}); });
+      validateAll(); updateHeaderChips(); applyFilters();
+    });
+    // Keyboard accessibility for chips
+    card.querySelectorAll('.chip').forEach(chip=>{
+      chip.tabIndex = 0;
+      chip.addEventListener('keydown', e=>{ if(e.key==='Enter'|| e.key===' '){ e.preventDefault(); chip.click(); } });
     });
 
     // Uygula / Hepsini Temizle
     $("#btnApplyDateFilters")?.addEventListener("click", ()=>{
       const invalids = validateAll(true);
       if (invalids.length) toastERR(`Hatalı aralık temizlendi: ${invalids.join(", ")}`);
+      updateHeaderChips();
       applyFilters();
+      try {
+        const sums = [DF.acilis,DF.karar,DF.kapanis].map(x=> (x.from||x.to)?1:0).reduce((a,b)=>a+b,0);
+        const filtered = Array.isArray(VIEW) ? VIEW.length : 0;
+        const totalRaw = Array.isArray(RAW) ? RAW.length : filtered;
+        const msg = sums ? `Filtre uygulandı (${sums} aktif, ${filtered.toLocaleString('tr-TR')} / ${totalRaw.toLocaleString('tr-TR')} kayıt).` : `Filtre kaldırıldı (${totalRaw.toLocaleString('tr-TR')} kayıt).`;
+        window.toast?.({ type: sums? 'info':'warning', title: 'Tarih Filtresi', body: msg, delay: 3500 });
+      } catch(_){}
     });
     $("#btnClearAll")?.addEventListener("click", ()=>{
       ["acilis","karar","kapanis"].forEach(k=>{
@@ -235,26 +264,24 @@
         setPairState(k,{from:"",to:""});
       });
       clearErrors();
+      updateHeaderChips();
       applyFilters();
+      try {
+        const totalRaw = Array.isArray(RAW) ? RAW.length : (Array.isArray(VIEW)?VIEW.length:0);
+        window.toast?.({ type:'warning', title:'Tarih Filtresi', body:`Tüm filtreler temizlendi (${totalRaw.toLocaleString('tr-TR')} kayıt).`, delay:3000 });
+      } catch(_){}
     });
+    updateHeaderChips();
   }
 
   function pairBlock(title, key){
     return `
       <div class="mb-2">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="small text-body-secondary">${esc(title)}</div>
-          <button type="button" class="btn btn-link btn-sm p-0" id="btnClr_${key}">Bu filtreyi temizle</button>
-        </div>
-        <div class="row g-2 align-items-end">
-          <div class="col-6">
-            <label class="form-label mb-1 small d-block">Başlangıç</label>
-            <input type="date" class="form-control form-control-sm" id="${key}From" aria-label="${title} Başlangıç">
-          </div>
-          <div class="col-6">
-            <label class="form-label mb-1 small d-block">Bitiş</label>
-            <input type="date" class="form-control form-control-sm" id="${key}To" aria-label="${title} Bitiş">
-          </div>
+        <label class="form-label mb-1 small d-block">${esc(title)}</label>
+        <div class="date-range-group">
+          <input type="date" class="form-control form-control-sm" id="${key}From" aria-label="${title} Başlangıç">
+          <span class="range-sep">–</span>
+          <input type="date" class="form-control form-control-sm" id="${key}To" aria-label="${title} Bitiş">
         </div>
         <div class="invalid-feedback d-block small mt-1" id="err_${key}" style="display:none"></div>
       </div>
@@ -268,6 +295,7 @@
     const err  = $(`#err_${key}`);
     const fEl  = $(`#${key}From`);
     const tEl  = $(`#${key}To`);
+    const chip = $(`#btnClr_${key}`);
     let valid = true, msg = "";
     if (from && to){
       const f = toDayNum(from), t = toDayNum(to);
@@ -275,6 +303,7 @@
     }
     [fEl,tEl].forEach(el=> el && el.classList.toggle("is-invalid", !valid && (from||to)));
     if (err){ err.style.display = (!valid && (from||to)) ? "block" : "none"; err.textContent = (!valid && (from||to)) ? msg : ""; }
+    if (chip) chip.hidden = !(from || to);
     return { valid, from, to };
   }
   function validateAll(autoFix=false){
@@ -293,6 +322,22 @@
       }
     });
     return invalids;
+  }
+  function updateHeaderChips(){
+    ["acilis","karar","kapanis"].forEach(k=>{
+      const chip = $(`#btnClr_${k}`); if(!chip) return;
+      const st = DF[k];
+      const has = !!(st.from || st.to);
+      chip.hidden = !has;
+      chip.dataset.active = has?"1":"0";
+      if (has){
+        chip.textContent = (k==="acilis"?"Açılış":(k==="karar"?"Karar":"Kapanış")) + ': ' + (st.from||'…') + ' – ' + (st.to||'…') + ' ✕';
+      } else {
+        chip.textContent = (k==="acilis"?"Açılış":(k==="karar"?"Karar":"Kapanış")) + ' ✕';
+      }
+    });
+    const any = [DF.acilis,DF.karar,DF.kapanis].some(st=> st.from||st.to);
+    const allChip = $("#btnClr_all"); if (allChip){ allChip.hidden = !any; }
   }
   function clearErrors(){
     ["acilis","karar","kapanis"].forEach(k=>{
@@ -383,12 +428,16 @@
 
       if (!head.querySelector(`#${key}Search`)){
         const actions = document.createElement("div");
-        actions.className = "ms-auto d-flex align-items-center gap-1 flex-nowrap";
+        actions.className = "d-flex justify-content-end align-items-center gap-2 flex-wrap";
+        actions.style.marginLeft = "auto";
         actions.innerHTML = `
           <input id="${key}Search" type="text" class="form-control form-control-sm"
-            placeholder="${key==='statu'?'Statü ara':'139329'}" style="width:150px" list="${key}Suggestions">
+            placeholder="${key==='statu'?'Statü ara':'139329'}" list="${key}Suggestions">
           <datalist id="${key}Suggestions"></datalist>
-          <button class="btn btn-outline-secondary btn-sm" id="${key}SaveBtn">Kaydet (Excel)</button>
+          <button class="btn" id="${key}SaveBtn" style="display:inline-flex;align-items:center;gap:6px;">
+            <span class="material-symbols-rounded" style="font-size:18px;">save</span>
+            <span>XLS</span>
+          </button>
         `;
         head.appendChild(actions);
 
@@ -469,14 +518,14 @@
     let footer = cardEl.querySelector(":scope > .card-footer");
     if (!footer){
       footer = document.createElement("div");
-      footer.className = "card-footer py-2";
+      footer.className = "card-footer";
       cardEl.appendChild(footer);
     }
     footer.innerHTML = `
-      <div class="d-flex justify-content-end align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm" id="${key}Prev">Önceki</button>
-        <span class="text-body-secondary small">${total ? (start+1) : 0}–${end} / ${total}</span>
-        <button class="btn btn-outline-secondary btn-sm" id="${key}Next">Sonraki</button>
+      <div class="pager" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <div><button class="btn" id="${key}Prev">Önceki</button></div>
+        <div class="muted" style="min-width:80px;text-align:center;">${total ? (start+1) : 0}–${end} / ${total}</div>
+        <div><button class="btn" id="${key}Next">Sonraki</button></div>
       </div>
     `;
     footer.querySelector(`#${key}Prev`)?.addEventListener("click", ()=>{ if (JR_STATE[key].page>1){ JR_STATE[key].page--; renderCard(key);} });
@@ -487,6 +536,11 @@
 
   function renderRoleCards(){
     ensureCardActions();
+    // Panelleri göster (yükleme sonrası)
+    ["hakimCard", "savciCard", "katipCard"].forEach(id => {
+      const panel = document.getElementById(id);
+      if (panel) panel.style.display = "";
+    });
     renderCard("hakim");
     renderCard("savci");
     renderCard("katip");
@@ -519,19 +573,47 @@
 
     body.innerHTML = "";
 
-    // Kontroller: Arama + Toggle + Tümünü Kaydet
-    const controls = document.createElement("div");
-    controls.className = "d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap";
-    controls.innerHTML = `
-      <input id="hatirSearch" class="form-control form-control-sm" placeholder="Ara (dosyaNo / kararNo / öneri)" style="max-width:320px">
-      <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
-        <label class="form-check form-switch m-0 d-flex align-items-center gap-2">
-          <input id="hatirToggleDone" class="form-check-input" type="checkbox" role="switch">
-          <span class="small">Yapılanları göster</span>
+    // Kontrolleri card header'a taşıyoruz
+    const hatirCard = body.closest('.card');
+    let cardHeader = hatirCard ? hatirCard.querySelector('.card-header') : null;
+    
+    if (cardHeader) {
+      // Mevcut kontrol div'ini temizle veya oluştur
+      let controlsInHeader = cardHeader.querySelector('.jr-controls');
+      if (!controlsInHeader) {
+        controlsInHeader = document.createElement("div");
+        controlsInHeader.className = "jr-controls";
+        controlsInHeader.style.marginLeft = "auto";
+        controlsInHeader.style.display = "flex";
+        controlsInHeader.style.alignItems = "center";
+        controlsInHeader.style.gap = "12px";
+        cardHeader.appendChild(controlsInHeader);
+      }
+      
+      controlsInHeader.innerHTML = `
+        <label class="form-check form-switch m-0" style="display:inline-flex;align-items:center;gap:6px;">
+          <input id="hatirToggleDone" class="form-check-input" type="checkbox" role="switch" style="margin:0;">
+          <span class="small" style="white-space:nowrap;">Yapılanları göster</span>
         </label>
-        <button class="btn btn-outline-secondary btn-sm" id="hatirExport">Tümünü Kaydet (XLSX)</button>
-      </div>
-    `;
+        <button class="btn subtle" id="hatirExport" style="white-space:nowrap;">
+          <span class="material-symbols-rounded" style="font-size:18px;">save</span>
+          <span>XLSX</span>
+        </button>
+      `;
+    }
+    // Log yapıldı işaretlemeleri
+    body.addEventListener('change', function(e){
+      const cb = e.target.closest('input.hatir-done[type="checkbox"]');
+      if (!cb) return;
+      const key = cb.getAttribute('data-key') || '';
+      const parts = key.split('::');
+      const dosyaNo = parts[0] || '';
+      const kararNo = parts[1] || '';
+      if (window.logEvent) {
+        const state = cb.checked ? 'yapıldı olarak işaretlendi' : 'yapılmadı olarak işaretlendi';
+        window.logEvent('action', `Dosya ${dosyaNo}, Karar ${kararNo} ${state}`);
+      }
+    });
 
     // Tablo iskeleti
     const tableWrap = document.createElement("div");
@@ -553,18 +635,32 @@
       </table>
     `;
 
+    // Find or create Bootstrap card-footer for hatirlatma card
+    let cardFoot = hatirCard ? (hatirCard.querySelector('.card-footer') || hatirCard.querySelector('.card-foot')) : null;
+    if (!cardFoot && hatirCard) {
+      cardFoot = document.createElement('div');
+      cardFoot.className = 'card-footer';
+      hatirCard.appendChild(cardFoot);
+    }
+
     const pager = document.createElement("div");
-    pager.className = "d-flex justify-content-between align-items-center p-2 border-top";
+    pager.className = "pager";
     pager.id = "hatirlatmaPager";
     pager.innerHTML = `
-      <button class="btn btn-sm btn-outline-secondary" id="hatirPrev">Önceki</button>
-      <small id="hatirPageInfo" class="text-muted">Sayfa 1/1</small>
-      <button class="btn btn-sm btn-outline-secondary" id="hatirNext">Sonraki</button>
+      <div><button class="btn" id="hatirPrev">Önceki</button></div>
+      <div class="muted" id="hatirPageInfo">Sayfa 1/1</div>
+      <div><button class="btn" id="hatirNext">Sonraki</button></div>
     `;
 
-    body.appendChild(controls);
     body.appendChild(tableWrap);
-    body.appendChild(pager);
+    
+    // Append pager to card-footer (preferred) or fallback to body
+    if (cardFoot) {
+      cardFoot.innerHTML = '';
+      cardFoot.appendChild(pager);
+    } else {
+      body.appendChild(pager);
+    }
 
     // Eventler
     $("#hatirSearch")?.addEventListener("input", debounce((e)=>{
@@ -965,13 +1061,13 @@
 		footer.className = "card-footer py-2";
 		cardEl.appendChild(footer);
 	  }
-	  footer.innerHTML = `
-		<div class="d-flex justify-content-end align-items-center gap-2">
-		  <button class="btn btn-outline-secondary btn-sm" id="${key}Prev">Önceki</button>
-		  <span class="text-body-secondary small">${total ? (start+1) : 0}–${end} / ${total}</span>
-		  <button class="btn btn-outline-secondary btn-sm" id="${key}Next">Sonraki</button>
-		</div>
-	  `;
+      footer.innerHTML = `
+        <div class="pager" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <div><button class="btn" id="${key}Prev">Önceki</button></div>
+          <div class="muted small" style="min-width:80px;text-align:center;">${total ? (start+1) : 0}–${end} / ${total}</div>
+          <div><button class="btn" id="${key}Next">Sonraki</button></div>
+        </div>
+      `;
 	  footer.querySelector(`#${key}Prev`)?.addEventListener("click", ()=>{ if (JR_STATE[key].page>1){ JR_STATE[key].page--; renderSecondCard(key);} });
 	  footer.querySelector(`#${key}Next`)?.addEventListener("click", ()=>{ if (JR_STATE[key].page<mp){ JR_STATE[key].page++; renderSecondCard(key);} });
 
@@ -1018,8 +1114,9 @@
           <div class="modal-body">
             <div class="title-actions" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
               <input id="jrListSearch" class="input form-control form-control-sm" placeholder="Ara (dosyaNo / kararNo)" style="flex:1;min-width:220px">
-              <button class="btn btn-outline-secondary btn-sm" id="btnJrListExport">
-                <span class="material-symbols-rounded">file_download</span> Tümünü Kaydet (XLS)
+              <button class="btn" id="btnJrListExport" title="Tümünü Kaydet (XLS)">
+                <span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">file_download</span>
+                <span style="vertical-align:middle;">Kaydet (XLS)</span>
               </button>
             </div>
             <div style="overflow:auto;max-height:60vh">
@@ -1029,10 +1126,10 @@
               </table>
             </div>
           </div>
-          <div class="modal-foot" style="display:flex;gap:8px;justify-content:flex-end;align-items:center">
-            <button class="btn btn-outline-secondary btn-sm" id="jrListPrev">Önceki</button>
+          <div class="modal-foot d-flex justify-content-end align-items-center gap-2">
+            <button class="btn" id="jrListPrev">Önceki</button>
             <span class="text-body-secondary small" id="jrListInfo"></span>
-            <button class="btn btn-outline-secondary btn-sm" id="jrListNext">Sonraki</button>
+            <button class="btn" id="jrListNext">Sonraki</button>
           </div>
         </div>
       </div>`;
@@ -1202,7 +1299,7 @@
     refresh(){ applyFilters(); }
   };
   
-  // === [Multi Excel Dropzone] excelUploadMount dinamik oluştuğunda altına kart ekle ===
+    // === [Multi Excel Dropzone] jsonUploadCol içine kart ekle (başta gizli) ===
 	(function bindMultiExcelDropzone(){
 	  if (window.__jrMultiExcelBound) return; window.__jrMultiExcelBound = true;
 
@@ -1223,38 +1320,42 @@
 	  function buildCard(){
 		const sec = document.createElement("section");
 		sec.id = "multiExcelCard";
-		sec.className = "card card-upload";
+		sec.className = "panel";
+    sec.style.marginTop = "0";
 		sec.setAttribute("aria-label","Çoklu Excel yükleme");
-		sec.innerHTML = `
-		  <div class="card-head">
-			<div class="card-title">
+    sec.innerHTML = `
+		  <div class="panel-head">
+			<div style="display:flex;align-items:center;gap:8px;">
 			  <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
 			  <strong>Çoklu Excel Yükle</strong>
 			</div>
-			<div class="actions">
-			  <label for="multiExcelInput" class="btn" title="XLS/XLSX seç">
-				<span class="material-symbols-rounded">add_to_drive</span><span>Dosya Seç</span>
-			  </label>
-			  <button type="button" class="btn ghost" id="btnMultiExcelClear" title="Seçimi temizle">
-				<span class="material-symbols-rounded">delete</span><span>Temizle</span>
-			  </button>
-			  <button type="button" class="btn" id="btnMultiExcelImport" title="Seçili dosyaları işle">
-				<span class="material-symbols-rounded">play_arrow</span><span>İçe Aktar (çoklu)</span>
-			  </button>
+		  </div>
+        <div class="panel-body" style="display:block;margin-top:0;">
+			<div id="multiExcelDrop" style="min-height:120px; display:block; padding:18px; text-align:center; border:1px dashed var(--border); border-radius:10px; cursor:pointer;">
+			  <input id="multiExcelInput" type="file"
+				accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+				multiple hidden>
+			  <div id="multiExcelHint" class="muted" style="text-align:center;">
+				<div style="font-weight:600; margin-bottom:6px">Dosyaları buraya sürükleyip bırakın</div>
+				<div>Yalnızca <strong>XLS</strong> ve <strong>XLSX</strong> kabul edilir.</div>
+			  </div>
 			</div>
-		  </div>
-		  <div class="card-body" id="multiExcelDrop" style="min-height:120px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--border); border-radius:10px;">
-			<input id="multiExcelInput" type="file"
-			  accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-			  multiple hidden>
-			<div id="multiExcelHint" class="muted" style="text-align:center">
-			  <div style="font-weight:600; margin-bottom:6px">Dosyaları buraya sürükleyip bırakın</div>
-			  <div>Yalnızca <strong>XLS</strong> ve <strong>XLSX</strong> kabul edilir.</div>
-			</div>
-		  </div>
-		  <div class="card-foot">
-			<div id="multiExcelSummary" class="muted" style="font-size:12px"></div>
-		  </div>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px; flex-wrap:nowrap;">
+        <label for="multiExcelInput" class="btn" title="XLS/XLSX seç" style="display:inline-flex; align-items:center; gap:8px; white-space:nowrap;">
+        <span class="material-symbols-rounded" style="font-size:20px; line-height:1; display:inline-block;">add_to_drive</span>
+        <span style="line-height:1; display:inline-block;">Dosya Seç</span>
+        </label>
+        <button type="button" class="btn" id="btnMultiExcelClear" title="Seçimi temizle" style="display:inline-flex; align-items:center; gap:8px; white-space:nowrap;">
+        <span class="material-symbols-rounded" style="font-size:20px; line-height:1; display:inline-block;">delete</span>
+        <span style="line-height:1; display:inline-block;">Temizle</span>
+        </button>
+        <button type="button" class="btn" id="btnMultiExcelImport" title="Seçili dosyaları işle" style="display:inline-flex; align-items:center; gap:8px; white-space:nowrap;">
+        <span class="material-symbols-rounded" style="font-size:20px; line-height:1; display:inline-block;">play_arrow</span>
+        <span style="line-height:1; display:inline-block;">İçe Aktar (çoklu)</span>
+        </button>
+      </div>
+      <div id="multiExcelSummary" class="muted" style="font-size:12px; margin-top:6px;"></div>
+      </div>
 		`;
 		return sec;
 	  }
@@ -1262,16 +1363,9 @@
 	  function attachTo(mount){
 		if (!mount || document.getElementById("multiExcelCard")) return;
 
-		// Dinamik butonun hemen altına yerleştir: mount içindeki ilk .card-upload’tan sonra
-		const firstUpload = mount.querySelector(".card.card-upload");
-		const card = buildCard();
-		if (firstUpload && firstUpload.nextSibling){
-		  firstUpload.parentNode.insertBefore(card, firstUpload.nextSibling);
-		} else if (firstUpload) {
-		  firstUpload.parentNode.appendChild(card);
-		} else {
-		  mount.appendChild(card);
-		}
+    const card = buildCard();
+    card.style.display = "none"; // ilk açılışta gizli
+    mount.appendChild(card);
 
 		const input   = document.getElementById("multiExcelInput");
 		const drop    = document.getElementById("multiExcelDrop");
@@ -1336,10 +1430,10 @@
 		});
 	  }
 
-	  function tryMount(){
-		const mount = document.getElementById("excelUploadMount");
-		if (mount) attachTo(mount);
-	  }
+    function tryMount(){
+    const mount = document.getElementById("jsonUploadCol");
+    if (mount) attachTo(mount);
+    }
 
 	  // İlk deneme
 	  if (document.readyState === "loading"){
@@ -1352,5 +1446,13 @@
 	  const obs = new MutationObserver(()=>{ tryMount(); });
 	  obs.observe(document.documentElement || document.body, { childList:true, subtree:true });
 	})();
+
+  // === Excel yükleme sonrası panelleri göster ===
+  document.addEventListener("jr-multi-excel-selected", function(){
+    ["hakimCard", "savciCard", "katipCard"].forEach(id => {
+      const panel = document.getElementById(id);
+      if (panel) panel.style.display = "";
+    });
+  });
 
 })();

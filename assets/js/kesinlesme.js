@@ -49,19 +49,8 @@
         backdrop-filter: saturate(120%);
       }
 
-      /* Pill kısayollar: okunabilirlik */
-      .pill-btn{
-        border:1px solid var(--pill-bd,#b7b7b7);
-        background: var(--pill-bg,rgba(127,127,127,.08));
-        color: var(--pill-fg,inherit);
-        border-radius:999px; padding:.32rem .7rem; cursor:pointer;
-        font-weight: 600; font-size:.92rem;
-      }
-      .pill-btn:hover{ background: var(--pill-bg-h,rgba(127,127,127,.14)); }
-      [data-theme="dark"] .pill-btn{
-        --pill-bd:#5a5a5a; --pill-bg:rgba(255,255,255,.06); --pill-bg-h:rgba(255,255,255,.1);
-        --pill-fg:#eaeaea;
-      }
+      /* Date action group modernized via .btn small */
+      .date-actions{ display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
 
       /* KPI */
       .kpi .kpi-value{font-size:2rem;font-weight:700}
@@ -321,15 +310,14 @@
 	  <div class="form-row">
 		<label class="row-label" for="tebligTarihi">Tebliğ Tarihi</label>
 		<div class="row-field">
-		  <input id="tebligTarihi" type="date" class="input"/>
-		  <button id="btnPick" class="icon-btn" title="Takvimi aç" aria-label="Takvimi aç">📅</button>
-		  <div class="date-actions">   <!-- <-- BURASI -->
-			<button class="pill-btn" data-delta="-7">-1 Hf</button>
-			<button class="pill-btn" data-delta="-1">-1 G</button>
-			<button class="pill-btn" data-today="1">Bugün</button>
-			<button class="pill-btn" data-delta="1">+1 G</button>
-			<button class="pill-btn" data-delta="7">+1 Hf</button>
-		  </div>
+          <input id="tebligTarihi" type="date" class="input"/>
+          <div class="date-actions">
+            <button class="btn small" data-delta="-7">-1 Hf</button>
+            <button class="btn small" data-delta="-1">-1 G</button>
+            <button class="btn small" data-today="1">Bugün</button>
+            <button class="btn small" data-delta="1">+1 G</button>
+            <button class="btn small" data-delta="7">+1 Hf</button>
+          </div>
 		</div>
 	  </div>
       <div class="form-row">
@@ -349,13 +337,7 @@
     `;
     $("#tebligTarihi").value = todayISO;
 
-    $("#btnPick")?.addEventListener("click", () => {
-      const el = $("#tebligTarihi");
-      if (el && typeof el.showPicker === "function") el.showPicker();
-      else el?.focus();
-    });
-
-    $("#formMount").querySelectorAll(".pill-btn").forEach(btn => {
+    $("#formMount").querySelectorAll(".date-actions .btn").forEach(btn => {
       btn.addEventListener("click", () => {
 		  const inp = $("#tebligTarihi");
 		  let d = fromISO(inp.value) || new Date();
@@ -388,19 +370,77 @@
     info.textContent = items.length ? `${items.length} kayıt` : "kayıt yok";
 
     const today = new Date(); today.setHours(0,0,0,0);
-
-    const tagsHtml = items.map(t=>{
-      const d = fromISO(t.iso);
+    // Gruplar: geçmiş ve gelecek ayrı; her grup hover/focus ile açılır.
+    const past = [];
+    const future = [];
+    items.forEach(t=>{
+      const d = fromISO(t.iso); if (!d) return;
+      if (d.getTime() < today.getTime()) past.push(t); else future.push(t);
+    });
+    function renderTag(t){
+      const d = fromISO(t.iso); if (!d) return '';
       const label = fmt_ddmm(d);
-      const isFuture = d.getTime() > today.getTime();
+      const isFuture = d.getTime() >= today.getTime();
       const cls = isFuture
         ? (t.tur===2 ? "tag tag--o-half" : "tag tag--o-full")
         : (t.tur===2 ? "tag tag--half"  : "tag tag--full");
       const title = (t.aciklama || "").replace(/"/g,"&quot;");
       return `<span class="${cls}" title="${title}">${label}</span>`;
-    }).join("");
+    }
+    function groupHtml(list, groupLabel){
+      if (!list.length) return '';
+      const head = `<div class="holiday-group-head muted"><span class="chevron">▸</span><span>${groupLabel} (${list.length})</span></div>`;
+      const inner = list.map(renderTag).join("");
+      return `<div class="holiday-group" tabindex="0">${head}<div class="holiday-group-inner">${inner}</div></div>`;
+    }
+    const toolbar = `<div class="holiday-groups-toolbar"><button class="toggle-all-btn" type="button" id="btnToggleAll"><span class="material-symbols-rounded" style="font-size:16px;"> unfold_more </span><span>Tümünü aç</span></button><div id="holidayInfoInline" class="muted small"></div></div>`;
+    const html = toolbar + groupHtml(past, 'Geçmiş') + groupHtml(future, 'Gelecek');
+    mount.innerHTML = html || '<em>Tanımlı yok</em>';
 
-    mount.innerHTML = tagsHtml ? `<div class="tags-wrap">${tagsHtml}</div>` : "<em>Tanımlı yok</em>";
+    // Bilgiyi toolbar'a da yaz
+    const infoInline = $("#holidayInfoInline"); if (infoInline) infoInline.textContent = items.length ? `${items.length} kayıt` : "kayıt yok";
+
+    // Etkileşimler: tek tek aç/kapa ve tümünü aç/kapa
+    mount.querySelectorAll('.holiday-group').forEach(el=>{
+      const toggle = ()=> el.classList.toggle('open');
+      el.addEventListener('click', (e)=>{
+        // Yalnızca başlığı tıklayınca tetikleyelim; içerikteki tag'e tıklama flicker yapmasın
+        if (e.target.closest('.holiday-group-head')) toggle();
+      });
+      el.addEventListener('keydown', (e)=>{
+        if (e.key==='Enter' || e.key===' ') { e.preventDefault(); toggle(); }
+        if (e.key==='ArrowRight') el.classList.add('open');
+        if (e.key==='ArrowLeft')  el.classList.remove('open');
+      });
+    });
+    const btnAll = $("#btnToggleAll");
+    if (btnAll){
+      let allOpen = false;
+      const updateLabel = ()=>{
+        const spanText = btnAll.querySelector('span:last-child');
+        const icon = btnAll.querySelector('.material-symbols-rounded');
+        if (spanText) spanText.textContent = allOpen ? 'Tümünü kapat' : 'Tümünü aç';
+        if (icon) icon.textContent = allOpen ? 'unfold_less' : 'unfold_more';
+      };
+      updateLabel();
+      btnAll.addEventListener('click', ()=>{
+        allOpen = !allOpen;
+        mount.querySelectorAll('.holiday-group').forEach(el=> el.classList.toggle('open', allOpen));
+        updateLabel();
+      });
+    }
+
+    // Tag tıklamalarında kısa (1.5s) toast göster
+    mount.querySelectorAll('.holiday-group-inner .tag').forEach(tagEl => {
+      tagEl.addEventListener('click', (e) => {
+        e.stopPropagation(); // grup aç/kapa ile çakışmasın
+        const dateTxt = tagEl.textContent || '';
+        const desc = tagEl.getAttribute('title') || '';
+        if (typeof window.toast === 'function') {
+          window.toast({ type: 'info', title: dateTxt, body: desc || 'Tatil', delay: 1500 });
+        }
+      });
+    });
   }
 
   // ======================
