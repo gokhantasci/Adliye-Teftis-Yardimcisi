@@ -37,3 +37,6 @@ Thumbs.db
 Dockerfile
 docker-compose.yml
 .dockerignore
+
+# Test scripts
+test-performance.sh
