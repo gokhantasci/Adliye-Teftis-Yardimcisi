@@ -1,0 +1,39 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG*.md
+
+# IDE and Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Node modules and build artifacts
+node_modules
+package-lock.json
+dist
+build
+
+# Environment files
+.env
+.env.local
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (don't copy into the image)
+Dockerfile
+docker-compose.yml
+.dockerignore

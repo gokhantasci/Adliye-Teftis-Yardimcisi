@@ -12,7 +12,6 @@
     if (typeof window.toast === "function"){
       window.toast({ type: type || 'info', title: title || 'Bilgi', body: body, delay: delay || 2500 });
     } else {
-      console.log((title||'Bilgi') + ": " + body);
     }
   }
   function ensureModal(){

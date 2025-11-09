@@ -1,0 +1,18 @@
+{
+  "name": "adliye-teftis-yardimcisi",
+  "version": "1.1.0",
+  "description": "Adliye Teftiş Yardımcısı - Adliye teftiş işlemlerini kolaylaştırmak için geliştirilmiş web uygulaması",
+  "main": "index.php",
+  "scripts": {
+    "lint": "eslint assets/js/*.js --ignore-pattern '*.min.js'",
+    "lint:fix": "eslint assets/js/*.js --ignore-pattern '*.min.js' --fix",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": ["adliye", "teftiş", "yargı", "denetim"],
+  "author": "Gökhan TAŞÇI",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-standard": "^17.1.0"
+  }
+}

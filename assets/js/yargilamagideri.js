@@ -25,7 +25,6 @@
     if (typeof window.toast === "function") {
       window.toast({ type, title, body });
     } else {
-      console.log(`[${type}] ${title}: ${body}`);
     }
   }
 
@@ -546,7 +545,6 @@
     window.__bindTebligatUploadDone = true;
 
     const onFile = (file) => handleFile(file).catch((e) => {
-      console.error(e);
       showToast("warning", "Uyarı", "Dosya okunamadı: " + (e?.message || "Bilinmeyen hata"));
     });
 
@@ -672,7 +670,6 @@
       bindUploadOnce();              // dropzone event'leri şimdi bağlanır (tek kez)
       // loadCounterWithJQ();         // istersen aç
     } catch (err) {
-      console.error(err);
       const mount = $(MOUNT_SELECTOR);
       if (mount) {
         const warn = el("div", "muted");

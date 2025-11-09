@@ -79,7 +79,6 @@
     const hasValidTitle = d3Norm.includes("gerekceli kararin zaman kontrolu") || 
                           d3Norm.includes("gerekceli karar") && d3Norm.includes("zaman") && d3Norm.includes("kontrol");
     if (!hasValidTitle){
-      console.warn('D3 hücresinde beklenen başlık bulunamadı, ancak devam ediliyor. Bulunan:', d3);
     }
 
     // Meta (F5 - sadece birim adı)
@@ -90,7 +89,6 @@
       (norm(headerRow[COL.C]).includes("esas") && norm(headerRow[COL.C]).includes("no")) &&
       (norm(headerRow[COL.G]).includes("karar") && norm(headerRow[COL.G]).includes("turu")) &&
       (norm(headerRow[COL.I]).includes("kisa") && norm(headerRow[COL.I]).includes("karar"));
-    if (!okHeader){ console.warn("Başlık satırı beklenenden farklı; veri C12'den okunacak."); }
 
     // Veriyi C12'den itibaren oku
     const rows = [];
@@ -350,7 +348,6 @@
     const bodyStr = JSON.stringify(payload);
     const exportBtn = document.getElementById('exportDocxBtn');
     if (exportBtn) { exportBtn.disabled = true; exportBtn.classList.add('busy'); }
-    console.log('[gerekcelikarar][export:init]', { url: apiUrl, method: 'POST', bytes: bodyStr.length, rowCount: payload.rows.length });
 
     try{
       const startedAt = performance.now();
@@ -364,9 +361,7 @@
         body: bodyStr
       });
       const durMs = Math.round(performance.now() - startedAt);
-  console.log('[gerekcelikarar][export:response]', { status: res.status, durationMs: durMs, redirected: res.redirected, finalUrl: res.url, contentType: res.headers.get('Content-Type'), disposition: res.headers.get('Content-Disposition') });
       
-      console.log('Sunucu yanıtı:', {
         status: res.status,
         contentType: res.headers.get('Content-Type'),
         disposition: res.headers.get('Content-Disposition')
@@ -511,10 +506,8 @@
 				window.toast?.({ type: "info", title: "Başarılı", body: msg, delay : 9000 });
 			  }
 			} catch (e) {
-			  console.warn("Sayaç verisi okunamadı:", e);
 			}
 		  }).fail(function() {
-			console.warn("Sayaç servisine ulaşılamadı.");
 		  });
 		}
   }

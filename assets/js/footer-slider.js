@@ -37,7 +37,7 @@
 					const div=document.createElement('div'); div.className='fs-item'; div.innerHTML=String(html); track.appendChild(div);
 				});
 				if(idx>=count()) idx=0; apply(); auto();
-			}catch(e){ console.error('[FooterSlider append]', e); }
+			}catch(e){ /* error handled */ }
 		};
 	}
 })();

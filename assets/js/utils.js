@@ -82,12 +82,8 @@
   function showToast(opts) {
     if (typeof window.toast === "function") {
       window.toast(opts);
-    } else {
-      // Fallback to console
-      const level = opts.type === 'danger' ? 'error' : 
-                    opts.type === 'warning' ? 'warn' : 'log';
-      console[level](`${opts.title}: ${opts.body}`);
     }
+    // No fallback - silently ignore if toast function not available
   }
 
   /**

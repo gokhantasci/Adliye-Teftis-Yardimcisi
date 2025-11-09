@@ -432,10 +432,8 @@
             window.toast?.({ type: "info", title: "Başarılı", body: msg, delay : 9000 });
           }
         } catch (e) {
-          console.warn("Sayaç verisi okunamadı:", e);
         }
       }).fail(function() {
-        console.warn("Sayaç servisine ulaşılamadı.");
       });
     }
   }

@@ -56,7 +56,6 @@
 		saveBlobAs(blob, fname);
 		window.toast?.({type:"info", title:"CSV olarak kaydedildi", body:`XLSX kütüphanesi bulunamadı, CSV verildi: ${fname}`});
 	  } catch (e) {
-		console.error(e);
 		window.toast?.({type:"danger", title:"Dışa aktarma hatası", body:String(e?.message||e)});
 	  }
 	}
@@ -564,7 +563,6 @@
 
 		  window.toast?.({ type:"success", title:"UDF okundu", body:`${escapeHtml(f.name)} işlendi` });
 		} catch (e) {
-		  console.error(e);
 		  window.toast?.({ type:"danger", title:"UDF okunamadı", body:`${escapeHtml(f.name)} — ${e.message || e}` });
 		}
 	  }
@@ -614,7 +612,6 @@
 		  totalRows += rows.length;
 		  window.toast?.({ type:"success", title:"Excel okundu", body:`${escapeHtml(f.name)} — ${fmtInt(rows.length)} satır` });
 		} catch (e) {
-		  console.error(e);
 		  window.toast?.({ type:"danger", title:"Excel okunamadı", body:`${escapeHtml(f.name)} — ${e.message || e}` });
 		}
 	  }
@@ -709,10 +706,8 @@
 				window.toast?.({ type: "info", title: "Başarılı", body: msg, delay : 9000 });
 			  }
 			} catch (e) {
-			  console.warn("Sayaç verisi okunamadı:", e);
 			}
 		  }).fail(function() {
-			console.warn("Sayaç servisine ulaşılamadı.");
 		  });
 		}
 

@@ -150,7 +150,6 @@
   }
   function onInputChanged(e){
     const f = e.target.files && e.target.files[0];
-    if (f) runFromFile(f).catch(err=>{ console.error(err); alert(err.message||"Dosya okunamadı."); });
   }
   input.addEventListener("change", onInputChanged);
   if (runBtn){
@@ -169,7 +168,6 @@
     dropZone.addEventListener('drop', e=>{
       const dt = e.dataTransfer; if (!dt || !dt.files || dt.files.length===0) return;
       const f = dt.files[0];
-      runFromFile(f).catch(err=>{ console.error(err); alert(err.message||'Dosya okunamadı.'); });
     });
   }
 })();

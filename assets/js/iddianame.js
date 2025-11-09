@@ -88,7 +88,6 @@
       norm(headerRow[COL.C]).startsWith("iddianame no") &&
       (norm(headerRow[COL.F]).includes("degerlendirme") || norm(headerRow[COL.F]).includes("değerlendirme")) &&
       (norm(headerRow[COL.G]).includes("gonderildigi") || norm(headerRow[COL.G]).includes("gönderildiği"));
-    if (!okHeader){ console.warn("Başlık satırı beklenenden farklı; veri C12’den okunacak."); }
 
     // Veriyi C12’den itibaren oku
     const rows = [];
@@ -362,7 +361,6 @@
     const bodyStr = JSON.stringify(payload);
     const exportBtn = document.getElementById('exportDocxBtn');
     if (exportBtn) { exportBtn.disabled = true; exportBtn.classList.add('busy'); }
-    console.log('[iddianame][export:init]', { url: apiUrl, method: 'POST', bytes: bodyStr.length, rowCount: payload.rows.length });
 
     try{
       const startedAt = performance.now();
@@ -376,9 +374,7 @@
         body: bodyStr
       });
       const durMs = Math.round(performance.now() - startedAt);
-  console.log('[iddianame][export:response]', { status: res.status, durationMs: durMs, redirected: res.redirected, finalUrl: res.url, contentType: res.headers.get('Content-Type'), disposition: res.headers.get('Content-Disposition') });
       
-      console.log('Sunucu yanıtı:', {
         status: res.status,
         contentType: res.headers.get('Content-Type'),
         disposition: res.headers.get('Content-Disposition')
@@ -521,10 +517,8 @@
 				window.toast?.({ type: "info", title: "Başarılı", body: msg, delay : 9000 });
 			  }
 			} catch (e) {
-			  console.warn("Sayaç verisi okunamadı:", e);
 			}
 		  }).fail(function() {
-			console.warn("Sayaç servisine ulaşılamadı.");
 		  });
 		}
   }

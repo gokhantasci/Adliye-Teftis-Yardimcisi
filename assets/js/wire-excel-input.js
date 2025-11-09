@@ -144,10 +144,9 @@ const file = e.target.files && e.target.files[0];
       if (window.toast) window.toast({type:'success', title:'Başarılı', body: (excelInput.files && excelInput.files[0] ? (excelInput.files[0].name+ ' okundu') : 'Dosya okundu')    var __delay = 1500 - (Date.now()-__t0); if (__delay>0) await new Promise(r=>setTimeout(r,__delay));
     hideExcelSpinner();
     if (window.toast) window.toast({type:"success", title:"Başarılı", body: (file && file.name ? (file.name+" okundu") : "Dosya okundu")});
-  }catch(err){ hideExcelSpinner(); console.error(err); alert(err.message || "Dosya okunamadı."); }
+  }catch(err){ hideExcelSpinner(); alert(err.message || "Dosya okunamadı."); }
 });
     }catch(err){
-      console.error(err);
       alert(err.message || "Dosya okunamadı.");
     }
   });

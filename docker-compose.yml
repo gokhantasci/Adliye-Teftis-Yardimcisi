@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: adliye-teftis-yardimcisi
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data:/var/www/html/data
+    environment:
+      # E-posta gönderimi için gerekli ortam değişkenleri
+      # Bu değerleri .env dosyasında veya burada tanımlayın
+      - GMAIL_USER=${GMAIL_USER:-}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

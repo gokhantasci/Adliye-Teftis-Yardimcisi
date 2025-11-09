@@ -76,7 +76,43 @@
 - Web sunucusu (Apache/Nginx)
 - Modern web tarayıcısı (Chrome, Edge, Firefox önerilir)
 
-### Kurulum Adımları
+### 🐳 Docker ile Kurulum (Önerilen)
+
+Docker ile uygulamayı tek komutla çalıştırabilirsiniz:
+
+1. **Projeyi İndirin**
+   ```bash
+   git clone https://github.com/gokhantasci/Adliye-Teftis-Yardimcisi.git
+   cd Adliye-Teftis-Yardimcisi
+   ```
+
+2. **Docker Container'ı Başlatın**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Uygulamayı Kullanın**
+   - Tarayıcınızda `http://localhost:8080` adresine gidin
+
+4. **Container'ı Durdurun**
+   ```bash
+   docker-compose down
+   ```
+
+**E-posta Özelliği için (Opsiyonel):**
+```bash
+# .env dosyası oluşturun
+cp .env.example .env
+
+# .env dosyasını düzenleyin ve Gmail bilgilerinizi ekleyin
+# GMAIL_USER=your-email@gmail.com
+# GMAIL_APP_PASSWORD=your-app-password
+
+# Container'ı yeniden başlatın
+docker-compose down && docker-compose up -d
+```
+
+### Manuel Kurulum
 
 1. **Projeyi İndirin**
    ```bash
@@ -340,6 +376,21 @@ Proje, modüler ve bakımı kolay bir yapıya sahiptir:
 - **CSS Yapısı**: CSS değişkenleri ile tema yönetimi
 - **Partials**: Yeniden kullanılabilir PHP parçaları
 
+### Geliştirme Araçları
+
+Projeyi geliştirmek için npm scriptleri kullanabilirsiniz:
+
+```bash
+# Bağımlılıkları yükleyin
+npm install
+
+# JavaScript dosyalarını ESLint ile kontrol edin
+npm run lint
+
+# ESLint hatalarını otomatik düzeltin
+npm run lint:fix
+```
+
 ### Katkıda Bulunma
 
 1. Projeyi fork edin
@@ -354,6 +405,7 @@ Proje, modüler ve bakımı kolay bir yapıya sahiptir:
 - **PHP**: PSR-12 standartları
 - **CSS**: BEM metodolojisi benzeri sınıf isimlendirme
 - **Yorum Satırları**: Türkçe, açıklayıcı ve anlaşılır
+- **Console Statements**: Üretim kodunda console.log/warn/error kullanılmaz
 
 ## 🐛 Sorun Bildirme
 

@@ -103,7 +103,7 @@
           document.dispatchEvent(ev);
         }
       }
-    } catch(e){ console.error(e); }
+    } catch(e){ /* error handled */ }
   }
   async function pushAdd(text){
     try {
@@ -145,7 +145,7 @@
       if (!raw) return;
       const data = JSON.parse(raw);
       ids.forEach(k => { if ($(k) && Object.prototype.hasOwnProperty.call(data, k)) $(k).value = data[k]; });
-    } catch(e){ console.error(e); }
+    } catch(e){ /* error handled */ }
   }
   function save(){
     const data = {};
@@ -256,7 +256,7 @@ document.getElementById('excelInput')?.addEventListener('change', () => {
       } else {
         root.style.removeProperty('--settings-target-height');
       }
-    }catch(e){ console.error(e); }
+    }catch(e){ /* error handled */ }
   }
   var run = debounce(equalizeSettingsToUpload, 100);
   window.addEventListener('load', run);
@@ -273,7 +273,7 @@ if (typeof dismissTestAlert !== 'function') {
     try{
       var el = document.getElementById('testDataAlert');
       if(el){ el.remove(); }
-    }catch(e){ console.error(e); }
+    }catch(e){ /* error handled */ }
   }
 }
 (function(){
@@ -281,7 +281,7 @@ if (typeof dismissTestAlert !== 'function') {
     try{
       var el = document.getElementById('testDataAlert');
       if(el){ el.remove(); }
-    }catch(e){ console.error(e); }
+    }catch(e){ /* error handled */ }
   };
 })();
 (function () {
@@ -365,7 +365,6 @@ if (typeof dismissTestAlert !== 'function') {
         return items;
       })
       .catch(function (e) {
-        console.error("[NEWS]", e);
         setErrorInCard();
         return [];
       });
@@ -459,7 +458,7 @@ if (typeof dismissTestAlert !== 'function') {
           track.appendChild(div);
         });
         window.__footerNewsApplied = true;
-      } catch(e){ console.error('[FooterNews]', e); }
+      } catch(e){ /* error handled */ }
     })();
   }
   // Toast queue & throttle (max 2 concurrent, 500ms interval)
@@ -714,14 +713,12 @@ if (typeof dismissTestAlert !== 'function') {
           } else {
             setToast((data && (data.error || data.msg)) || 'Gönderim sırasında bir sorun oluştu.');
             btn.disabled = false;
-            console.warn('send-mail.php response:', data);
           }
         });
       })
       .catch(function (err) {
         setToast('Ağ hatası: Gönderilemedi.');
         btn.disabled = false;
-        console.error(err);
       });
     });
   }
@@ -876,7 +873,7 @@ if (typeof dismissTestAlert !== 'function') {
         pager.appendChild(right);
       }
       renderPage();
-    }catch(e){ console.error('pager error', e); }
+    }catch(e){ /* error handled */ }
   };
 
   function watch(tableSelector){
@@ -1013,7 +1010,7 @@ function __applyPager(tableSelector, pageSize){
       pager.appendChild(right);
     }
     renderPage();
-  }catch(e){ console.error('pager error', e); }
+  }catch(e){ /* error handled */ }
 }
 
 // Auto-paginate #noJudgeTable when caseModal opens

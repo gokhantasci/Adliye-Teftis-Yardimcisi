@@ -480,7 +480,6 @@ function renderNoJudgeAlert_afterUpload(missingCount){
         }
       })
       .catch(function(err) {
-        console.log('Sayaç güncellenemedi:', err);
       });
     
     window.__matrixSource={used:used, IDX:IDX};
